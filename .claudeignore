@@ -1,0 +1,29 @@
+# Build output
+dist/
+*.mjs
+
+# Dependencies
+node_modules/
+
+# Test files
+test_*.py
+*.test.ts
+*.spec.ts
+
+# Course output (generated files)
+openclaude-course/
+
+# Logs and caches
+*.log
+.cache/
+bun.lockb
+
+# IDE
+.DS_Store
+.vscode/
+vscode-extension/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo

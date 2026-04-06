@@ -1,0 +1,166 @@
+<section class="module" id="module-1" style="background: var(--color-bg);">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">什么是 OpenClaude？</h1>
+      <p class="module-subtitle">你已经在使用它了。现在让我们看看它的底层工作原理。</p>
+    </header>
+
+    <!-- Screen 1: The Product -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">AI 编程助手 —— 但有一个巧妙的设计</h2>
+      <p>
+        <span class="term" data-definition="Claude Code 是 Anthropic 公司开发的 AI 编程助手。你在终端中输入自然语言指令，它会代替你编写、编辑、搜索和运行代码。">Claude Code</span>
+        是一个命令行 AI 编程助手。OpenClaude 是它的一个分支 —— 意思是有人拿了原始代码，在上面加了一个重要的想法：
+      </p>
+
+      <div class="callout callout-accent animate-in" style="margin: var(--space-8) 0; padding: var(--space-6); background: var(--color-accent-light); border-left: 4px solid var(--color-accent); border-radius: var(--radius-md);">
+        <p style="font-family: var(--font-display); font-size: var(--text-xl); font-weight: 700; color: var(--color-accent); margin-bottom: var(--space-2);">不仅能与 Claude（Anthropic 的 AI）合作，OpenClaude 还能与<em>任何</em> AI 配合工作。</p>
+        <p style="color: var(--color-text-secondary); margin: 0;">GPT-4o、DeepSeek、Gemini、Ollama（在你的电脑上运行）、Mistral、Groq……全部支持。</p>
+      </div>
+
+      <p>
+        可以这样理解：原始的 Claude Code 就像一个高端音响系统，只能接受一个品牌的磁带。OpenClaude 换掉了磁带卡座，换成了一个通用的
+        <span class="term" data-definition="适配器（Adapter）是一段代码（或硬件），用于在两种不兼容的格式之间进行转换 —— 就像电源插头适配器，让你可以在欧洲插座上使用美国电器。">适配器</span>
+        ，可以接受任何格式的磁带。
+      </p>
+    </div>
+
+    <!-- Screen 2: The Primary User Journey -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">当你输入一个提示词时会发生什么？</h2>
+      <p>
+        想象一下，你打开
+        <span class="term" data-definition="终端（也叫命令行或 CLI）是你输入命令的文本界面。不是点击按钮，而是输入类似 'openclaude' 这样的指令来启动应用。">终端</span>，
+        输入："重构这个函数让它更易读"。下面是接下来发生的完整流程：
+      </p>
+
+      <div class="flow-animation animate-in" data-steps='[
+        {"highlight":"flow-actor-1","label":"你在终端输入提示词并按 Enter。"},
+        {"highlight":"flow-actor-2","label":"QueryEngine 接收你的消息并准备发送给 AI。","packet":true,"from":"actor-1","to":"actor-2"},
+        {"highlight":"flow-actor-3","label":"API Layer 决定调用哪个 AI 提供商（Claude、GPT-4o、Ollama……）。","packet":true,"from":"actor-2","to":"actor-3"},
+        {"highlight":"flow-actor-4","label":"AI 模型处理你的提示词并开始流式返回响应。","packet":true,"from":"actor-3","to":"actor-4"},
+        {"highlight":"flow-actor-3","label":"响应实时流式返回——逐 token 生成。","packet":true,"from":"actor-4","to":"actor-3"},
+        {"highlight":"flow-actor-2","label":"如果 AI 需要运行工具（如读取文件），QueryEngine 会处理权限检查。","packet":true,"from":"actor-3","to":"actor-2"},
+        {"highlight":"flow-actor-1","label":"最终响应显示在你的终端中——随生成随显示。","packet":true,"from":"actor-2","to":"actor-1"}
+      ]'>
+        <div class="flow-actors" style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:var(--space-4); margin-bottom:var(--space-6);">
+          <div class="flow-actor" id="flow-actor-1" style="display:flex; flex-direction:column; align-items:center; gap:var(--space-2); padding:var(--space-4); border-radius:var(--radius-md); border:2px solid var(--color-border); background:var(--color-surface); min-width:120px; text-align:center; transition:all 0.3s;">
+            <div class="flow-actor-icon" style="width:48px; height:48px; border-radius:50%; background:var(--color-actor-1); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:var(--text-lg);">👤</div>
+            <span style="font-size:var(--text-sm); font-weight:600;">你</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-2" style="display:flex; flex-direction:column; align-items:center; gap:var(--space-2); padding:var(--space-4); border-radius:var(--radius-md); border:2px solid var(--color-border); background:var(--color-surface); min-width:120px; text-align:center; transition:all 0.3s;">
+            <div class="flow-actor-icon" style="width:48px; height:48px; border-radius:50%; background:var(--color-actor-2); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">QE</div>
+            <span style="font-size:var(--text-sm); font-weight:600;">QueryEngine</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-3" style="display:flex; flex-direction:column; align-items:center; gap:var(--space-2); padding:var(--space-4); border-radius:var(--radius-md); border:2px solid var(--color-border); background:var(--color-surface); min-width:120px; text-align:center; transition:all 0.3s;">
+            <div class="flow-actor-icon" style="width:48px; height:48px; border-radius:50%; background:var(--color-actor-3); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">API</div>
+            <span style="font-size:var(--text-sm); font-weight:600;">API Layer</span>
+          </div>
+          <div class="flow-actor" id="flow-actor-4" style="display:flex; flex-direction:column; align-items:center; gap:var(--space-2); padding:var(--space-4); border-radius:var(--radius-md); border:2px solid var(--color-border); background:var(--color-surface); min-width:120px; text-align:center; transition:all 0.3s;">
+            <div class="flow-actor-icon" style="width:48px; height:48px; border-radius:50%; background:var(--color-actor-4); color:white; display:flex; align-items:center; justify-content:center; font-weight:700;">🤖</div>
+            <span style="font-size:var(--text-sm); font-weight:600;">AI 模型</span>
+          </div>
+        </div>
+        <div class="flow-packet" id="flow-packet" style="display:none; position:absolute; width:12px; height:12px; border-radius:50%; background:var(--color-accent); pointer-events:none;"></div>
+        <div class="flow-step-label" style="text-align:center; min-height:2.5em; font-size:var(--text-base); color:var(--color-text-secondary); padding:var(--space-4); background:var(--color-surface-warm); border-radius:var(--radius-sm); margin-bottom:var(--space-4);">点击"下一步"开始</div>
+        <div class="flow-controls" style="display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap;">
+          <button class="btn flow-next-btn" style="padding:var(--space-2) var(--space-5); background:var(--color-accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-sm); font-weight:600;">下一步</button>
+          <button class="btn flow-reset-btn" style="padding:var(--space-2) var(--space-5); background:transparent; color:var(--color-text-secondary); border:2px solid var(--color-border); border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-sm);">重新开始</button>
+          <span class="flow-progress" style="font-size:var(--text-sm); color:var(--color-text-muted);"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 3: Why This Matters -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">多提供商支持对你有什么意义？</h2>
+      <p>
+        当你理解 OpenClaude 是一个<em>轻量路由层</em>，位于你和任何 AI 模型之间时，你获得了真正的实用能力：
+      </p>
+
+      <div class="stagger-children" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:var(--space-4); margin:var(--space-8) 0;">
+        <div class="animate-in" style="padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-top:3px solid var(--color-actor-1);">
+          <div style="font-size:1.5rem; margin-bottom:var(--space-3);">💸</div>
+          <h3 style="font-family:var(--font-display); font-size:var(--text-base); font-weight:700; margin-bottom:var(--space-2);">成本控制</h3>
+          <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0;">对重复性任务切换到更便宜的模型，对复杂推理使用更强大的模型。</p>
+        </div>
+        <div class="animate-in" style="padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-top:3px solid var(--color-actor-2);">
+          <div style="font-size:1.5rem; margin-bottom:var(--space-3);">🔒</div>
+          <h3 style="font-family:var(--font-display); font-size:var(--text-base); font-weight:700; margin-bottom:var(--space-2);">隐私保护</h3>
+          <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0;">使用 Ollama 在本地运行模型——你的代码永远不会离开你的机器。</p>
+        </div>
+        <div class="animate-in" style="padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-top:3px solid var(--color-actor-3);">
+          <div style="font-size:1.5rem; margin-bottom:var(--space-3);">⚡</div>
+          <h3 style="font-family:var(--font-display); font-size:var(--text-base); font-weight:700; margin-bottom:var(--space-2);">速度优势</h3>
+          <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0;">Groq 和 DeepSeek 在高峰时段可能比云端提供商快得多。</p>
+        </div>
+        <div class="animate-in" style="padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-top:3px solid var(--color-actor-4);">
+          <div style="font-size:1.5rem; margin-bottom:var(--space-3);">🧪</div>
+          <h3 style="font-family:var(--font-display); font-size:var(--text-base); font-weight:700; margin-bottom:var(--space-2);">实验对比</h3>
+          <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0;">用不同的模型测试同一任务，找到最适合你工作流程的那个。</p>
+        </div>
+      </div>
+
+      <div style="padding:var(--space-5); background:var(--color-info-light); border-radius:var(--radius-md); border-left:4px solid var(--color-info); margin-top:var(--space-8);">
+        <p style="font-weight:600; color:var(--color-info); margin-bottom:var(--space-2);">💡 AI 编程超能力</p>
+        <p style="color:var(--color-text-secondary); margin:0;">你不需要理解这个代码库的每一行也能很好地使用它。但是知道<em>存在哪些可调节的选项</em>——提供商、模型、路由——意味着你可以给 AI 更好的指令，并在它意外行为时进行调试。</p>
+      </div>
+    </div>
+
+    <!-- Screen 4: Quiz -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">检验你的理解</h2>
+
+      <div class="quiz-container" id="quiz-module1">
+        <div class="quiz-question-block"
+             data-correct="option-b"
+             data-explanation-right="正确！OpenClaude 将你的提示词路由到你配置的任何一个 AI 提供商——无论是 Claude、GPT-4o、Ollama 还是其他——使用相同的工具接口。"
+             data-explanation-wrong="不完全对。OpenClaude 并不托管自己的 AI。它是一个路由层，向现有的 AI 提供商发送提示词。把它想象成总机，而不是电话公司。">
+          <h3 class="quiz-question">你想为另一个工具构建一个类似 OpenClaude 的功能。你会借鉴什么核心架构思想？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>构建自己的 AI 模型并在服务器上托管</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>在工具和多个 AI 提供商之间放置一个适配器层，这样工具就不需要关心它在使用哪个 AI</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>硬编码最好的 AI 模型，永远不改变它</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question-block"
+             data-correct="option-a"
+             data-explanation-right="正确！Ollama 完全在你的本地机器上运行模型。你的代码永远不会发送到任何外部服务器，这正是敏感项目所需要的。"
+             data-explanation-wrong="不完全对。云端提供商如 OpenAI 和 Anthropic 确实会在他们的服务器上接收你的提示词——这是他们工作的方式。Ollama 是例外：它在本地运行，永远不会发送数据出去。">
+          <h3 class="quiz-question">你的客户有严格的数据隐私政策：源代码不能离开公司。你应该将 OpenClaude 配置为使用哪个提供商？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>Ollama——它在你的本地机器上运行模型</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>OpenAI——它有企业级安全证书</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>Anthropic Claude——原始提供商，所以最值得信赖</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module1')" style="margin-top:var(--space-6); padding:var(--space-3) var(--space-6); background:var(--color-accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-base); font-weight:600;">检查答案</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module1')" style="margin-top:var(--space-3); margin-left:var(--space-3); padding:var(--space-3) var(--space-6); background:transparent; color:var(--color-text-secondary); border:2px solid var(--color-border); border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-base);">重试</button>
+      </div>
+    </div>
+
+  </div>
+</section>

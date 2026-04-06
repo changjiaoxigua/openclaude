@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>架构分析 · OpenClaude</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root {
+  --bg: #0f1117; --bg2: #161b22; --bg3: #21262d;
+  --border: #30363d; --text: #e6edf3; --text2: #8b949e;
+  --accent: #58a6ff; --green: #3fb950; --yellow: #d29922;
+  --red: #f85149; --orange: #db6d28; --purple: #bc8cff;
+  --easy: #3fb950; --medium: #d29922; --hard: #f85149;
+  --sidebar-w: 220px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; display: flex; min-height: 100vh; }
+
+/* Sidebar */
+#sidebar { width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border); position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; padding: 20px 0; z-index: 100; display: flex; flex-direction: column; }
+#sidebar .logo { padding: 0 16px 20px; font-weight: 700; font-size: 13px; color: var(--accent); border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+#sidebar .logo span { display: block; color: var(--text2); font-weight: 400; font-size: 11px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#sidebar nav a { display: flex; align-items: center; gap: 8px; padding: 7px 16px; color: var(--text2); text-decoration: none; font-size: 13px; border-left: 2px solid transparent; transition: all .15s; }
+#sidebar nav a:hover, #sidebar nav a.active { color: var(--text); background: var(--bg3); border-left-color: var(--accent); }
+#sidebar nav .section-label { padding: 12px 16px 4px; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .8px; }
+#sidebar .meta { margin-top: auto; padding: 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text2); }
+
+/* Main */
+#main { margin-left: var(--sidebar-w); flex: 1; padding: 40px 48px 80px; max-width: 1100px; }
+section { padding-top: 60px; margin-bottom: 20px; scroll-margin-top: 20px; }
+section > h2 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+section > .section-desc { color: var(--text2); font-size: 13px; margin-bottom: 28px; }
+.back-link { display: inline-flex; align-items: center; gap: 4px; color: var(--text2); text-decoration: none; font-size: 12px; margin-bottom: 24px; padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; transition: all .15s; }
+.back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Hero */
+#hero { padding-top: 0 !important; margin-bottom: 48px; }
+.hero-card { background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%); border: 1px solid var(--border); border-radius: 12px; padding: 32px; position: relative; overflow: hidden; }
+.hero-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--purple)); }
+.hero-name { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+.hero-type { font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 16px; }
+.hero-stack { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.tag { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: var(--bg3); border: 1px solid var(--border); color: var(--text2); }
+.hero-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; margin-top: 20px; }
+.stat { text-align: center; background: var(--bg); border-radius: 8px; padding: 12px; }
+.stat .val { font-size: 22px; font-weight: 700; color: var(--accent); }
+.stat .lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.skeleton-banner { background: rgba(219,109,40,.12); border: 1px solid var(--orange); border-radius: 8px; padding: 10px 14px; margin-top: 16px; font-size: 13px; color: var(--orange); }
+
+/* Complexity stars */
+.complexity { display: flex; gap: 2px; }
+.complexity span { width: 8px; height: 8px; border-radius: 2px; background: var(--border); }
+.complexity[data-v="1"] span:nth-child(-n+1),
+.complexity[data-v="2"] span:nth-child(-n+2),
+.complexity[data-v="3"] span:nth-child(-n+3),
+.complexity[data-v="4"] span:nth-child(-n+4),
+.complexity[data-v="5"] span:nth-child(-n+5) { background: var(--accent); }
+
+/* Layers */
+.layers-grid { display: flex; flex-direction: column; gap: 2px; }
+.layer-row { display: flex; align-items: stretch; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.layer-label { width: 160px; flex-shrink: 0; padding: 12px 16px; font-weight: 600; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.layer-label small { font-weight: 400; font-size: 11px; opacity: .7; }
+.layer-modules { flex: 1; display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; background: var(--bg2); align-items: center; }
+.layer-mod-chip { padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); color: var(--text2); transition: all .15s; }
+.layer-mod-chip:hover { color: var(--text); border-color: var(--accent); }
+
+/* Modules */
+.modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+.module-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.module-header { padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background .15s; }
+.module-header:hover { background: var(--bg3); }
+.module-header .mname { font-weight: 600; font-size: 14px; flex: 1; }
+.module-header .mrole { font-size: 12px; color: var(--text2); }
+.module-badges { display: flex; gap: 6px; align-items: center; }
+.badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.badge-easy { background: rgba(63,185,80,.15); color: var(--easy); }
+.badge-medium { background: rgba(210,153,34,.15); color: var(--medium); }
+.badge-hard { background: rgba(248,81,73,.15); color: var(--hard); }
+.badge-confirmed { background: rgba(63,185,80,.1); color: var(--green); }
+.badge-inferred { background: rgba(210,153,34,.1); color: var(--yellow); }
+.badge-unverified { background: rgba(248,81,73,.1); color: var(--red); }
+.chevron { color: var(--text2); transition: transform .2s; font-size: 12px; }
+.module-body { padding: 0 16px; max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; }
+.module-body.open { max-height: 600px; padding: 0 16px 14px; }
+.module-body .files { margin-top: 8px; }
+.module-body .files code { display: block; font-family: 'SF Mono', Consolas, monospace; font-size: 11px; color: var(--accent); background: var(--bg); padding: 2px 6px; border-radius: 3px; margin-bottom: 2px; }
+.module-body .deps { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.module-body p { color: var(--text2); font-size: 13px; margin-top: 8px; }
+.expand-toggle.open .chevron { transform: rotate(90deg); }
+
+/* Graph */
+#dep-graph { width: 100%; height: 420px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; margin-top: 16px; }
+
+/* Flows */
+.flow-block { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+.flow-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.flow-desc { color: var(--text2); font-size: 13px; margin-bottom: 16px; }
+.flow-steps { display: flex; flex-direction: column; gap: 0; }
+.flow-step { display: flex; gap: 12px; position: relative; }
+.flow-step:not(:last-child) .step-line { width: 2px; background: var(--border); position: absolute; left: 11px; top: 24px; bottom: -4px; }
+.step-dot { width: 24px; height: 24px; border-radius: 50%; background: var(--bg3); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 2px; color: var(--accent); border-color: var(--accent); z-index: 1; }
+.step-content { flex: 1; padding-bottom: 16px; }
+.step-actor { font-size: 11px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .5px; }
+.step-action { font-size: 13px; color: var(--text); }
+.step-note { font-size: 12px; color: var(--text2); margin-top: 2px; font-style: italic; }
+
+/* Risks */
+.risk-table { width: 100%; border-collapse: collapse; }
+.risk-table th { text-align: left; padding: 8px 12px; font-size: 12px; font-weight: 600; color: var(--text2); border-bottom: 1px solid var(--border); }
+.risk-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 13px; }
+.risk-table tr:last-child td { border-bottom: none; }
+.risk-level { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.risk-high { background: rgba(248,81,73,.15); color: var(--red); }
+.risk-medium { background: rgba(210,153,34,.15); color: var(--yellow); }
+.risk-low { background: rgba(63,185,80,.15); color: var(--green); }
+.risk-verify { background: rgba(88,166,255,.15); color: var(--accent); }
+.risk-files { font-family: 'SF Mono', Consolas, monospace; font-size: 11px; color: var(--text2); }
+
+/* Dev Guide */
+.guide-cards { display: flex; flex-direction: column; gap: 12px; }
+.guide-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; }
+.guide-scenario { font-weight: 600; font-size: 15px; margin-bottom: 12px; }
+.guide-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-start; }
+.guide-row .glabel { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; width: 70px; flex-shrink: 0; padding-top: 2px; }
+.guide-row .gval { font-size: 13px; color: var(--text2); }
+.guide-row .gval code { font-family: 'SF Mono', Consolas, monospace; font-size: 11px; color: var(--accent); background: var(--bg); padding: 1px 5px; border-radius: 3px; margin: 2px; display: inline-block; }
+.guide-row .gval .avoid { color: var(--red); }
+.guide-tip { margin-top: 10px; padding: 8px 12px; background: rgba(88,166,255,.08); border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; font-size: 13px; color: var(--text2); }
+
+/* Coverage */
+.coverage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.coverage-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+.coverage-panel h3 { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 12px; }
+.coverage-files { display: flex; flex-wrap: wrap; gap: 4px; }
+.coverage-files code { font-family: 'SF Mono', Consolas, monospace; font-size: 11px; color: var(--accent); background: var(--bg); padding: 2px 6px; border-radius: 3px; }
+.chain-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.chain-item:last-child { border-bottom: none; }
+.chain-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.chain-closed { background: var(--green); }
+.chain-open { background: var(--red); }
+.chain-gap { color: var(--text2); font-size: 12px; margin-top: 2px; }
+.next-read-item { padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.next-read-item:last-child { border-bottom: none; }
+.next-read-item code { font-family: 'SF Mono', Consolas, monospace; font-size: 11px; color: var(--accent); background: var(--bg); padding: 1px 5px; border-radius: 3px; display: block; margin-bottom: 3px; }
+.next-read-item .reason { color: var(--text2); font-size: 12px; }
+@media (max-width: 900px) { .coverage-grid { grid-template-columns: 1fr; } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); }
+  #main { margin-left: 0; padding: 24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="logo">
+    ⬡ arch-analyze
+    <span id="sb-project-name">—</span>
+  </div>
+  <nav id="sb-nav"></nav>
+  <div class="meta" id="sb-meta"></div>
+</aside>
+
+<main id="main">
+  <section id="hero"></section>
+  <section id="overview">
+    <h2>🏗️ 系统架构</h2>
+    <p class="section-desc">各层职责划分与核心模块归属</p>
+    <a href="#hero" class="back-link">↑ 返回总览</a>
+    <div id="layers-container"></div>
+  </section>
+  <section id="modules">
+    <h2>📦 核心模块</h2>
+    <p class="section-desc">点击模块卡片展开详细信息；依赖图展示模块间关系</p>
+    <a href="#hero" class="back-link">↑ 返回总览</a>
+    <div id="modules-container" class="modules-grid"></div>
+    <div id="dep-graph"></div>
+  </section>
+  <section id="lifecycle">
+    <h2>🔄 核心流程</h2>
+    <p class="section-desc">关键请求 / 事件链路</p>
+    <a href="#hero" class="back-link">↑ 返回总览</a>
+    <div id="flows-container"></div>
+  </section>
+  <section id="risks">
+    <h2>⚠️ 风险 &amp; 验证清单</h2>
+    <p class="section-desc">已识别的风险点与建议验证方式；标注证据来源</p>
+    <a href="#hero" class="back-link">↑ 返回总览</a>
+    <table class="risk-table" id="risk-table">
+      <thead><tr><th>等级</th><th>风险</th><th>相关文件</th><th>建议验证</th><th>来源</th></tr></thead>
+      <tbody id="risk-tbody"></tbody>
+    </table>
+  </section>
+  <section id="devguide">
+    <h2>🧭 二次开发导航</h2>
+    <p class="section-desc">常见改动场景：从哪里开始 / 会影响什么 / 不要轻动哪里</p>
+    <a href="#hero" class="back-link">↑ 返回总览</a>
+    <div id="guide-container" class="guide-cards"></div>
+  </section>
+  <section id="coverage">
+    <h2>🔍 覆盖报告</h2>
+    <p class="section-desc">本次分析已读文件、链路闭合状态与建议追读</p>
+    <a href="#hero" class="back-link">↑ 返回总览</a>
+    <div id="coverage-container"></div>
+  </section>
+</main>
+
+<script>
+/* ===DATA=== */
+
+const PROJECT = {
+  name: 'OpenClaude',
+  type: 'ai-agent',
+  stack: ['TypeScript', 'React', 'Bun', 'Node.js', 'Anthropic SDK', 'OpenAI API', 'Zod'],
+  scale: { files: 1958, estimate: 'large' },
+  complexity: 4,
+  analyzed: 'skeleton',
+  skeletonNote: '大型项目骨架分析，核心 API Shim 层已精读，UI 层和工具层仅分析结构',
+};
+
+const LAYERS = [
+  { id: 'entry', name: '入口层', description: 'CLI 入口、启动配置、环境验证', color: '#58a6ff', moduleIds: ['mod-cli', 'mod-profile'] },
+  { id: 'api', name: 'API Shim 层', description: '多提供商路由、协议转换、流式处理', color: '#3fb950', moduleIds: ['mod-openai-shim', 'mod-client', 'mod-provider'] },
+  { id: 'core', name: '核心逻辑层', description: 'Agent 会话、工具系统、状态管理', color: '#bc8cff', moduleIds: ['mod-tool', 'mod-commands', 'mod-assistant'] },
+  { id: 'ui', name: 'UI 层', description: 'React Ink 终端 UI、组件、交互', color: '#d29922', moduleIds: ['mod-ink', 'mod-components'] },
+];
+
+const MODULES = [
+  {
+    id: 'mod-cli',
+    name: 'CLI Entry',
+    role: '命令行入口与环境校验',
+    files: ['src/entrypoints/cli.tsx'],
+    complexity: 'medium',
+    deps: ['mod-profile', 'mod-provider'],
+    evidence: 'confirmed',
+    details: 'CLI 入口点，处理环境变量验证（CLAUDE_CODE_USE_OPENAI/GEMINI/GITHUB），调用 ProviderProfile 加载配置。[证据] src/entrypoints/cli.tsx:L44',
+  },
+  {
+    id: 'mod-profile',
+    name: 'ProviderProfile',
+    role: '提供商配置管理与持久化',
+    files: ['src/utils/providerProfile.ts', '.openclaude-profile.json'],
+    complexity: 'medium',
+    deps: ['mod-provider'],
+    evidence: 'confirmed',
+    details: '管理 .openclaude-profile.json 配置文件，支持 openai/ollama/codex/gemini/atomic-chat 等 profile 类型。处理密钥脱密显示。[证据] src/utils/providerProfile.ts:L17',
+  },
+  {
+    id: 'mod-openai-shim',
+    name: 'OpenAI Shim',
+    role: 'Anthropic ↔ OpenAI 协议转换',
+    files: ['src/services/api/openaiShim.ts', 'src/services/api/codexShim.ts'],
+    complexity: 'hard',
+    deps: ['mod-client', 'mod-provider'],
+    evidence: 'confirmed',
+    details: '核心 shim 层，将 Anthropic SDK 调用转换为 OpenAI 兼容请求。支持 SSE 流式响应转换、工具调用映射、多模态消息处理。支持 GitHub Models、Codex 后端。[证据] src/services/api/openaiShim.ts:L1',
+  },
+  {
+    id: 'mod-client',
+    name: 'API Client',
+    role: 'Anthropic SDK 客户端封装',
+    files: ['src/services/api/client.ts'],
+    complexity: 'medium',
+    deps: ['mod-openai-shim', 'mod-provider'],
+    evidence: 'confirmed',
+    details: '根据 provider 类型创建对应客户端实例。支持 firstParty/bedrock/vertex/foundry/openai/gemini/github/codex 等模式。[证据] src/services/api/client.ts:L1',
+  },
+  {
+    id: 'mod-provider',
+    name: 'Provider Config',
+    role: '提供商配置解析与路由',
+    files: ['src/services/api/providerConfig.ts', 'src/utils/model/providers.ts'],
+    complexity: 'medium',
+    deps: [],
+    evidence: 'confirmed',
+    details: '解析 OPENAI_BASE_URL、OPENAI_MODEL 等环境变量，支持本地模型自动检测（localhost/私有IP）。Codex 模型别名映射（codexplan→gpt-5.4）。[证据] src/utils/model/providers.ts:L14',
+  },
+  {
+    id: 'mod-tool',
+    name: 'Tool System',
+    role: '工具定义、执行与管理',
+    files: ['src/Tool.ts', 'src/commands.ts'],
+    complexity: 'hard',
+    deps: ['mod-commands'],
+    evidence: 'inferred',
+    details: '⚠️ 仅分析骨架，未读取实现代码。基于类型定义推断：支持 Bash、Agent、WebSearch、MCP 等工具类型，使用 Zod 进行输入校验。',
+  },
+  {
+    id: 'mod-commands',
+    name: 'Commands',
+    role: '内置命令实现',
+    files: ['src/commands/', 'src/commands.ts'],
+    complexity: 'medium',
+    deps: ['mod-tool'],
+    evidence: 'inferred',
+    details: '⚠️ 仅分析骨架，未读取实现代码。包含 add-dir、commit、agents、clear 等 50+ 内置命令。',
+  },
+  {
+    id: 'mod-assistant',
+    name: 'Assistant Session',
+    role: 'AI 会话管理',
+    files: ['src/assistant/', 'src/QueryEngine.ts'],
+    complexity: 'hard',
+    deps: ['mod-tool', 'mod-client'],
+    evidence: 'inferred',
+    details: '⚠️ 仅分析骨架，未读取实现代码。会话历史、消息上下文、查询引擎核心。',
+  },
+  {
+    id: 'mod-ink',
+    name: 'Ink Renderer',
+    role: '终端 UI 渲染引擎',
+    files: ['src/ink/', 'src/ink.ts'],
+    complexity: 'hard',
+    deps: ['mod-components'],
+    evidence: 'inferred',
+    details: '⚠️ 仅分析骨架，未读取实现代码。基于 React reconciler 的终端渲染引擎，处理布局、输入、事件。',
+  },
+  {
+    id: 'mod-components',
+    name: 'UI Components',
+    role: 'React 终端组件库',
+    files: ['src/components/'],
+    complexity: 'medium',
+    deps: ['mod-ink'],
+    evidence: 'inferred',
+    details: '⚠️ 仅分析骨架，未读取实现代码。32 个组件目录，包含 Spinner、对话框、选择器等终端 UI 组件。',
+  },
+];
+
+const FLOWS = [
+  {
+    title: 'Provider 请求路由流程',
+    description: '从 CLI 启动到 API 请求转发的完整链路',
+    steps: [
+      { actor: 'CLI Entry', action: '读取 .openclaude-profile.json 加载环境变量', note: '[证据] src/entrypoints/cli.tsx:L12' },
+      { actor: 'CLI Entry', action: '验证环境变量（OPENAI_API_KEY 等）', note: '[证据] src/entrypoints/cli.tsx:L44' },
+      { actor: 'providers.ts', action: '根据 CLAUDE_CODE_USE_* 变量确定 provider 类型', note: 'openai/gemini/github/bedrock/vertex/foundry/firstParty [证据] src/utils/model/providers.ts:L14' },
+      { actor: 'API Client', action: '创建对应客户端实例', note: '非 firstParty 时路由到 OpenAI Shim [证据] src/services/api/client.ts:L1' },
+      { actor: 'OpenAI Shim', action: '转换 Anthropic 消息格式为 OpenAI 格式', note: '工具调用、系统提示、多模态消息转换 [证据] src/services/api/openaiShim.ts:L71' },
+      { actor: 'OpenAI Shim', action: '发送 HTTP 请求并处理 SSE 流式响应', note: '支持重试、错误处理 [证据] src/services/api/openaiShim.ts' },
+      { actor: 'OpenAI Shim', action: '将 OpenAI 响应转回 Anthropic 流事件', note: '对 rest of codebase 透明' },
+    ],
+  },
+  {
+    title: 'Codex 后端请求流程',
+    description: 'Codex 特殊后端的认证与请求处理',
+    steps: [
+      { actor: 'Provider Config', action: '识别 Codex 模型别名（codexplan/codexspark）', note: '[证据] src/utils/model/providers.ts:L35' },
+      { actor: 'Provider Config', action: '解析 ~/.codex/auth.json 或 CODEX_API_KEY', note: '[证据] src/services/api/providerConfig.ts:L74' },
+      { actor: 'Codex Shim', action: '使用特殊 transport (codex_responses)', note: '[证据] src/services/api/codexShim.ts' },
+      { actor: 'Codex Shim', action: '处理 Codex 特有响应格式', note: 'reasoning_effort 参数支持 [证据] src/services/api/providerConfig.ts:L20' },
+    ],
+  },
+  {
+    title: '本地模型检测流程',
+    description: '自动识别本地运行的 Ollama/LM Studio 等',
+    steps: [
+      { actor: 'Provider Config', action: '检测 OPENAI_BASE_URL 是否为本地地址', note: 'localhost/127.0.0.1/::1/私有 IPv4 [证据] src/services/api/providerConfig.ts:L89' },
+      { actor: 'Provider Config', action: '跳过 API Key 验证', note: '本地模型无需密钥' },
+      { actor: 'OpenAI Shim', action: '标准 OpenAI 协议请求', note: '与云端模型统一处理' },
+    ],
+  },
+];
+
+const RISKS = [
+  {
+    level: 'medium',
+    title: '环境变量冲突风险',
+    description: '多个 CLAUDE_CODE_USE_* 变量同时设置时，优先级逻辑可能不符合预期（目前优先级：gemini > github > openai > bedrock > vertex > foundry > firstParty）',
+    files: ['src/utils/model/providers.ts'],
+    suggestion: '验证 provider 选择逻辑是否满足业务需求，考虑添加互斥检查警告',
+    evidence: 'confirmed',
+  },
+  {
+    level: 'medium',
+    title: '密钥泄露风险',
+    description: 'profile 文件存储在 .openclaude-profile.json（工作目录），可能被意外提交到 git',
+    files: ['.openclaude-profile.json', 'src/utils/providerProfile.ts'],
+    suggestion: '确保 .gitignore 排除 profile 文件；考虑迁移到全局配置文件 (~/.config/openclaude/)',
+    evidence: 'inferred',
+  },
+  {
+    level: 'low',
+    title: 'Codex 模型别名维护',
+    description: 'Codex 模型别名表需要随 OpenAI 模型更新手动维护',
+    files: ['src/services/api/providerConfig.ts:L13'],
+    suggestion: '关注 Codex/GPT-5.x 系列模型发布，及时更新别名映射',
+    evidence: 'confirmed',
+  },
+  {
+    level: 'verify',
+    title: '大型项目骨架分析局限',
+    description: 'Tool System、Assistant Session、Ink Renderer 等核心模块未深入实现分析',
+    files: ['src/Tool.ts', 'src/QueryEngine.ts', 'src/ink/'],
+    suggestion: '如需深度改动建议先精读相关模块实现，当前分析仅覆盖 API Shim 层',
+    evidence: 'unverified',
+  },
+];
+
+const DEV_GUIDE = [
+  {
+    scenario: '我想添加新的 OpenAI 兼容提供商',
+    startFiles: ['src/utils/model/providers.ts', 'src/services/api/providerConfig.ts'],
+    impacts: ['mod-provider', 'mod-openai-shim'],
+    avoidFiles: ['src/services/api/openaiShim.ts 的核心转换逻辑'],
+    tips: '1) 在 providers.ts 添加新的 provider 类型 2) 在 providerConfig.ts 添加配置解析 3) 如果协议有特殊差异，在 openaiShim.ts 添加分支处理',
+  },
+  {
+    scenario: '我想修改 Provider Profile 的存储位置',
+    startFiles: ['src/utils/providerProfile.ts'],
+    impacts: ['mod-profile'],
+    avoidFiles: [],
+    tips: '当前存储在工作目录 .openclaude-profile.json，修改 PROFILE_FILE_NAME 常量即可更改文件名；如需改存储位置需调整 resolveProfileFilePath 函数',
+  },
+  {
+    scenario: '我想添加新的工具类型',
+    startFiles: ['src/Tool.ts', 'src/commands.ts'],
+    impacts: ['mod-tool', 'mod-commands'],
+    avoidFiles: ['src/QueryEngine.ts 的流式处理核心'],
+    tips: '⚠️ 当前为骨架分析结论，工具系统未深入。建议先阅读 Tool.ts 的类型定义和现有工具实现（如 BashTool）',
+  },
+  {
+    scenario: '我想修复 Provider 认证问题',
+    startFiles: ['src/services/api/providerConfig.ts', 'src/services/api/client.ts'],
+    impacts: ['mod-provider', 'mod-client'],
+    avoidFiles: [],
+    tips: '1) 检查 resolveProviderRequest 的返回值 2) 验证本地模型检测逻辑（isLocalProviderUrl）3) 查看 client.ts 的认证头构造',
+  },
+  {
+    scenario: '我需要同步上游 Claude Code 更新',
+    startFiles: [],
+    impacts: ['mod-openai-shim', 'mod-client', 'mod-provider'],
+    avoidFiles: [],
+    tips: '根据 CLAUDE.md，只有 6 个文件被修改：openaiShim.ts（新增）、client.ts、providers.ts、configs.ts、model.ts、auth.ts。同步时优先检查这些文件的冲突',
+  },
+];
+
+const COVERAGE = {
+  analyzedFiles: [
+    'package.json',
+    'tsconfig.json',
+    'CLAUDE.md',
+    'scripts/build.ts',
+    'src/entrypoints/cli.tsx',
+    'src/services/api/openaiShim.ts',
+    'src/services/api/client.ts',
+    'src/services/api/codexShim.ts',
+    'src/services/api/providerConfig.ts',
+    'src/utils/model/providers.ts',
+    'src/utils/providerProfile.ts',
+    'src/Tool.ts',
+  ],
+  closedChains: [
+    'Provider 请求路由流程',
+    'Codex 后端请求流程',
+    '本地模型检测流程',
+  ],
+  openChains: [
+    { name: 'Tool 执行链路', gap: '仅读取类型定义，未追踪 toolUse → toolResult 完整闭环' },
+    { name: 'React Ink 渲染链路', gap: '终端 UI 渲染引擎仅分析目录结构，未读取 reconciler 实现' },
+    { name: 'Agent 会话管理', gap: 'QueryEngine、sessionHistory 未深入分析' },
+  ],
+  nextReads: [
+    { file: 'src/QueryEngine.ts', reason: '核心查询引擎，影响所有 LLM 调用策略' },
+    { file: 'src/assistant/sessionHistory.ts', reason: '会话历史管理，与上下文压缩相关' },
+    { file: 'src/ink/reconciler.ts', reason: '终端渲染核心，如需改动 UI 需理解' },
+  ],
+};
+
+/* ===/DATA=== */
+
+
+const EVIDENCE_LABEL = { confirmed: '证据', inferred: '推断', unverified: '未确认' };
+const EVIDENCE_CLASS = { confirmed: 'badge-confirmed', inferred: 'badge-inferred', unverified: 'badge-unverified' };
+const LEVEL_CLASS = { high: 'risk-high', medium: 'risk-medium', low: 'risk-low', verify: 'risk-verify' };
+const LEVEL_LABEL = { high: '🔴 高风险', medium: '🟡 中风险', low: '🟢 低风险', verify: '🔵 待验证' };
+const TYPE_LABEL = {
+  electron: 'Electron App', 'react-spa': 'React SPA', 'node-api': 'Node.js API',
+  fullstack: 'Full-stack', 'ai-agent': 'AI Agent 系统', monorepo: 'Monorepo', unknown: '未知类型',
+};
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+function renderHero() {
+  const s = document.getElementById('hero');
+  const skeletonBanner = PROJECT.analyzed === 'skeleton'
+    ? `<div class="skeleton-banner">⚠️ 大型项目 · 骨架级分析${PROJECT.skeletonNote ? '：' + PROJECT.skeletonNote : ''}</div>` : '';
+  const tags = PROJECT.stack.map(t => `<span class="tag">${t}</span>`).join('');
+  const stars = Array.from({ length: 5 }, (_, i) => `<span></span>`).join('');
+  s.innerHTML = `
+    <div class="hero-card">
+      <div class="hero-name">${PROJECT.name}</div>
+      <div class="hero-type">${TYPE_LABEL[PROJECT.type] || PROJECT.type}</div>
+      <div class="hero-stack">${tags}</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:12px;color:var(--text2)">复杂度</span>
+        <div class="complexity" data-v="${PROJECT.complexity}">${stars}</div>
+        <span style="font-size:12px;color:var(--text2)">${PROJECT.complexity}/5</span>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="val">${PROJECT.scale.files || '—'}</div><div class="lbl">文件数</div></div>
+        <div class="stat"><div class="val">${PROJECT.scale.estimate || '—'}</div><div class="lbl">规模</div></div>
+        <div class="stat"><div class="val">${MODULES.length}</div><div class="lbl">核心模块</div></div>
+        <div class="stat"><div class="val">${RISKS.filter(r=>r.level==='high').length}</div><div class="lbl">高风险项</div></div>
+      </div>
+      ${skeletonBanner}
+      <div style="margin-top:24px;display:flex;flex-wrap:wrap;gap:10px;">
+        <a href="#overview" style="text-decoration:none;padding:6px 16px;background:var(--accent);color:#000;border-radius:6px;font-size:13px;font-weight:600;">架构总览 →</a>
+        <a href="#modules" style="text-decoration:none;padding:6px 16px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:13px;">核心模块</a>
+        <a href="#lifecycle" style="text-decoration:none;padding:6px 16px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:13px;">核心流程</a>
+        <a href="#risks" style="text-decoration:none;padding:6px 16px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:13px;">风险清单</a>
+        <a href="#devguide" style="text-decoration:none;padding:6px 16px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:13px;">开发导航</a>
+        <a href="#coverage" style="text-decoration:none;padding:6px 16px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:13px;">覆盖报告</a>
+      </div>
+    </div>`;
+}
+
+function renderLayers() {
+  const c = document.getElementById('layers-container');
+  if (!LAYERS.length) { c.innerHTML = '<p style="color:var(--text2);font-size:13px;">未识别到明确的分层结构</p>'; return; }
+  const modMap = Object.fromEntries(MODULES.map(m => [m.id, m]));
+  c.innerHTML = '';
+  const grid = el('div', 'layers-grid');
+  LAYERS.forEach(layer => {
+    const chips = (layer.moduleIds || []).map(mid => {
+      const m = modMap[mid];
+      return `<span class="layer-mod-chip" onclick="scrollToModule('${mid}')">${m ? m.name : mid}</span>`;
+    }).join('');
+    const row = el('div', 'layer-row');
+    row.innerHTML = `
+      <div class="layer-label" style="background:${layer.color}22;border-right:3px solid ${layer.color}">
+        <span style="color:${layer.color}">${layer.name}</span>
+        <small>${layer.description}</small>
+      </div>
+      <div class="layer-modules">${chips || '<span style="color:var(--text2);font-size:12px">无模块</span>'}</div>`;
+    grid.appendChild(row);
+  });
+  c.appendChild(grid);
+}
+
+function renderModules() {
+  const c = document.getElementById('modules-container');
+  c.innerHTML = '';
+  MODULES.forEach(m => {
+    const card = el('div', 'module-card');
+    card.id = 'mod-' + m.id;
+    const filesHtml = (m.files || []).map(f => `<code>${f}</code>`).join('');
+    const depsHtml = (m.deps || []).map(d => {
+      const dm = MODULES.find(x => x.id === d);
+      return `<span class="layer-mod-chip" style="font-size:11px" onclick="scrollToModule('${d}')">${dm ? dm.name : d}</span>`;
+    }).join('');
+    card.innerHTML = `
+      <div class="module-header expand-toggle" onclick="toggleModule(this)">
+        <div>
+          <div class="mname">${m.name}</div>
+          <div class="mrole">${m.role}</div>
+        </div>
+        <div class="module-badges">
+          <span class="badge badge-${m.complexity}">${m.complexity}</span>
+          <span class="badge ${EVIDENCE_CLASS[m.evidence]}">${EVIDENCE_LABEL[m.evidence] || m.evidence}</span>
+        </div>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="module-body">
+        ${m.files?.length ? `<div class="files">${filesHtml}</div>` : ''}
+        ${m.deps?.length ? `<div style="margin-top:8px;font-size:11px;color:var(--text2);margin-bottom:4px;">依赖</div><div class="deps">${depsHtml}</div>` : ''}
+        ${m.details ? `<p>${m.details}</p>` : ''}
+      </div>`;
+    c.appendChild(card);
+  });
+}
+
+function renderFlows() {
+  const c = document.getElementById('flows-container');
+  c.innerHTML = '';
+  if (!FLOWS.length) { c.innerHTML = '<p style="color:var(--text2);font-size:13px;">未分析到核心流程</p>'; return; }
+  FLOWS.forEach(flow => {
+    const stepsHtml = flow.steps.map((s, i) => `
+      <div class="flow-step">
+        <div class="step-line"></div>
+        <div class="step-dot">${i + 1}</div>
+        <div class="step-content">
+          <div class="step-actor">${s.actor}</div>
+          <div class="step-action">${s.action}</div>
+          ${s.note ? `<div class="step-note">${s.note}</div>` : ''}
+        </div>
+      </div>`).join('');
+    const block = el('div', 'flow-block');
+    block.innerHTML = `<div class="flow-title">${flow.title}</div><div class="flow-desc">${flow.description || ''}</div><div class="flow-steps">${stepsHtml}</div>`;
+    c.appendChild(block);
+  });
+}
+
+function renderRisks() {
+  const tbody = document.getElementById('risk-tbody');
+  if (!RISKS.length) { tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text2);text-align:center;padding:20px">未识别到明确风险点</td></tr>'; return; }
+  const sorted = [...RISKS].sort((a, b) => ['high','medium','low','verify'].indexOf(a.level) - ['high','medium','low','verify'].indexOf(b.level));
+  tbody.innerHTML = sorted.map(r => `
+    <tr>
+      <td><span class="risk-level ${LEVEL_CLASS[r.level]}">${LEVEL_LABEL[r.level]}</span></td>
+      <td><strong style="font-size:13px">${r.title}</strong><br><span style="color:var(--text2);font-size:12px">${r.description}</span></td>
+      <td class="risk-files">${(r.files || []).map(f => `<div>${f}</div>`).join('')}</td>
+      <td style="color:var(--text2);font-size:12px">${r.suggestion}</td>
+      <td><span class="badge ${EVIDENCE_CLASS[r.evidence]}">${EVIDENCE_LABEL[r.evidence] || ''}</span></td>
+    </tr>`).join('');
+}
+
+function renderDevGuide() {
+  const c = document.getElementById('guide-container');
+  if (!DEV_GUIDE.length) { c.innerHTML = '<p style="color:var(--text2);font-size:13px;">暂无二次开发场景分析</p>'; return; }
+  const modMap = Object.fromEntries(MODULES.map(m => [m.id, m]));
+  DEV_GUIDE.forEach(g => {
+    const card = el('div', 'guide-card');
+    const startCode = (g.startFiles || []).map(f => `<code>${f}</code>`).join('');
+    const impactChips = (g.impacts || []).map(id => {
+      const m = modMap[id];
+      return `<code>${m ? m.name : id}</code>`;
+    }).join('');
+    const avoidCode = (g.avoidFiles || []).map(f => `<code class="avoid">${f}</code>`).join('');
+    card.innerHTML = `
+      <div class="guide-scenario">💡 ${g.scenario}</div>
+      ${startCode ? `<div class="guide-row"><span class="glabel">从这里</span><div class="gval">${startCode}</div></div>` : ''}
+      ${impactChips ? `<div class="guide-row"><span class="glabel">影响范围</span><div class="gval">${impactChips}</div></div>` : ''}
+      ${avoidCode ? `<div class="guide-row"><span class="glabel">不要动</span><div class="gval">${avoidCode}</div></div>` : ''}
+      ${g.tips ? `<div class="guide-tip">${g.tips}</div>` : ''}`;
+    c.appendChild(card);
+  });
+}
+
+function renderCoverage() {
+  const c = document.getElementById('coverage-container');
+  const filesHtml = (COVERAGE.analyzedFiles || []).map(f => `<code>${f}</code>`).join('');
+  const closedHtml = (COVERAGE.closedChains || []).map(name =>
+    `<div class="chain-item"><div class="chain-dot chain-closed"></div><span>${name}</span></div>`).join('');
+  const openHtml = (COVERAGE.openChains || []).map(ch =>
+    `<div class="chain-item"><div class="chain-dot chain-open"></div><div><div>${ch.name}</div><div class="chain-gap">${ch.gap}</div></div></div>`).join('');
+  const nextHtml = (COVERAGE.nextReads || []).map(n =>
+    `<div class="next-read-item"><code>${n.file}</code><div class="reason">${n.reason}</div></div>`).join('');
+  c.innerHTML = `<div class="coverage-grid">
+    <div class="coverage-panel"><h3>已读文件（${(COVERAGE.analyzedFiles||[]).length}）</h3><div class="coverage-files">${filesHtml || '<span style="color:var(--text2);font-size:13px">未记录</span>'}</div></div>
+    <div class="coverage-panel"><h3>链路闭合状态</h3>${closedHtml || ''}${openHtml || (!closedHtml ? '<p style="color:var(--text2);font-size:13px">未填写</p>' : '')}</div>
+    ${nextHtml ? `<div class="coverage-panel" style="grid-column:1/-1"><h3>建议追读</h3>${nextHtml}</div>` : ''}
+  </div>`;
+}
+
+function renderSidebar() {
+  document.getElementById('sb-project-name').textContent = PROJECT.name;
+  const nav = document.getElementById('sb-nav');
+  const links = [
+    { href: '#hero', icon: '⬡', label: '项目总览' },
+    { href: '#overview', icon: '🏗️', label: '系统架构' },
+    { href: '#modules', icon: '📦', label: '核心模块' },
+    { href: '#lifecycle', icon: '🔄', label: '核心流程' },
+    { href: '#risks', icon: '⚠️', label: '风险清单' },
+    { href: '#devguide', icon: '🧭', label: '开发导航' },
+    { href: '#coverage', icon: '🔍', label: '覆盖报告' },
+  ];
+  nav.innerHTML = links.map(l =>
+    `<a href="${l.href}">${l.icon} ${l.label}</a>`).join('');
+  const meta = document.getElementById('sb-meta');
+  const ts = new Date().toLocaleString('zh-CN', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  meta.innerHTML = `分析时间<br>${ts}`;
+}
+
+
+function initDepGraph() {
+  const container = document.getElementById('dep-graph');
+  if (!MODULES.length) { container.style.display = 'none'; return; }
+  const chart = echarts.init(container, 'dark');
+  const modMap = Object.fromEntries(MODULES.map(m => [m.id, m]));
+  const layerColorMap = Object.fromEntries(LAYERS.map(l => l.moduleIds.map(id => [id, l.color])).flat());
+  const complexitySize = { easy: 30, medium: 42, hard: 56 };
+  const nodes = MODULES.map(m => ({
+    id: m.id, name: m.name,
+    symbolSize: complexitySize[m.complexity] || 38,
+    itemStyle: { color: layerColorMap[m.id] || '#58a6ff', borderColor: '#30363d', borderWidth: 1 },
+    label: { fontSize: 11, color: '#e6edf3' },
+    tooltip: { formatter: `${m.name}<br>${m.role}` },
+  }));
+  const edges = MODULES.flatMap(m =>
+    (m.deps || []).filter(d => modMap[d]).map(d => ({
+      source: m.id, target: d,
+      lineStyle: { color: '#30363d', width: 1.5, curveness: .1 },
+    }))
+  );
+  chart.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'item', backgroundColor: '#161b22', borderColor: '#30363d', textStyle: { color: '#e6edf3', fontSize: 12 } },
+    series: [{
+      type: 'graph', layout: 'force', roam: true, draggable: true,
+      data: nodes, links: edges,
+      force: { repulsion: 160, gravity: 0.05, edgeLength: [80, 200], layoutAnimation: true },
+      emphasis: { focus: 'adjacency', lineStyle: { width: 2 } },
+    }],
+  });
+  window.addEventListener('resize', () => chart.resize());
+}
+
+function toggleModule(header) {
+  const body = header.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.module-body.open').forEach(b => {
+    b.classList.remove('open');
+    b.previousElementSibling.classList.remove('open');
+  });
+  if (!isOpen) { body.classList.add('open'); header.classList.add('open'); }
+}
+
+function scrollToModule(id) {
+  const el = document.getElementById('mod-' + id);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.style.outline = '2px solid var(--accent)'; setTimeout(() => el.style.outline = '', 1500); }
+  history.pushState(null, '', '#modules');
+}
+
+function initScrollSpy() {
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('#sb-nav a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-60px 0px -60% 0px' });
+  sections.forEach(s => obs.observe(s));
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderSidebar();
+  renderHero();
+  renderLayers();
+  renderModules();
+  renderFlows();
+  renderRisks();
+  renderDevGuide();
+  renderCoverage();
+  initDepGraph();
+  initScrollSpy();
+});
+</script>
+</body>
+</html>

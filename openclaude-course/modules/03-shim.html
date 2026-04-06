@@ -1,0 +1,213 @@
+<section class="module" id="module-3" style="background: var(--color-bg);">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">魔法翻译器</h1>
+      <p class="module-subtitle">OpenClaude 如何在 10+ 个不同的 AI 提供商之间切换而不需要为每个提供商重写代码？</p>
+    </header>
+
+    <!-- Screen 1: The Problem -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">语言障碍问题</h2>
+      <p>
+        每家 AI 公司都发明了自己的通信方式。Anthropic 的
+        <span class="term" data-definition="API（应用程序编程接口）是软件与其他软件通信的标准化方式。Anthropic 的 API 定义了你向 Claude 发送消息时需要使用的确切格式。">API</span>
+        格式与 OpenAI 的不同。如果 OpenClaude 在整个代码库中使用 Anthropic 的格式，它就永远无法与 GPT-4o 通信。
+      </p>
+
+      <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:var(--space-4); align-items:center; margin:var(--space-8) 0;">
+        <div style="padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-top:3px solid var(--color-actor-2);">
+          <div style="font-size:1.2rem; margin-bottom:var(--space-2);">🤖</div>
+          <strong style="font-family:var(--font-display); font-size:var(--text-sm);">Anthropic 格式</strong>
+          <code style="display:block; font-family:var(--font-mono); font-size:var(--text-xs); margin-top:var(--space-2); color:var(--color-text-secondary);">{ type: "tool_use", id: "...", name: "...", input: {} }</code>
+        </div>
+        <div style="font-size:2rem; text-align:center; color:var(--color-text-muted);">≠</div>
+        <div style="padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-top:3px solid var(--color-actor-1);">
+          <div style="font-size:1.2rem; margin-bottom:var(--space-2);">🤖</div>
+          <strong style="font-family:var(--font-display); font-size:var(--text-sm);">OpenAI 格式</strong>
+          <code style="display:block; font-family:var(--font-mono); font-size:var(--text-xs); margin-top:var(--space-2); color:var(--color-text-secondary);">{ tool_calls: [{ id: "...", function: { name: "...", arguments: "{}" } }] }</code>
+        </div>
+      </div>
+
+      <p>
+        解决方案是一种叫做
+        <span class="term" data-definition="适配器（在软件中）是位于两个不兼容接口的系统之间的代码，将消息从一种格式转换为另一种格式。就像电源插座适配器，让你可以在欧洲插座上使用美国电器。">适配器</span>
+        的设计模式。OpenClaude 在内部使用一个——应用程序的其余部分都使用 Anthropic 的语言，适配器默默地将其转换为实际提供商需要的格式，反之亦然。
+      </p>
+    </div>
+
+    <!-- Screen 2: The Shim file -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">认识 openaiShim.ts — OpenClaude 的核心，1,098 行代码</h2>
+      <p>
+        文件 <code style="font-family:var(--font-mono); background:var(--color-bg-code); color:#A6E3A1; padding:2px 6px; border-radius:4px;">src/services/api/openaiShim.ts</code>
+        是 OpenClaude 相对于原始 Claude Code 做出的最重要改进。它做三件事：
+      </p>
+
+      <div class="stagger-children" style="display:flex; flex-direction:column; gap:var(--space-4); margin:var(--space-8) 0;">
+        <div class="animate-in" style="display:flex; gap:var(--space-4); padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm);">
+          <div style="width:40px; height:40px; border-radius:50%; background:var(--color-actor-1); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">1</div>
+          <div>
+            <strong style="font-family:var(--font-display);">转换发出的消息</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">接收 QueryEngine 发出的 Anthropic 格式消息，在发送给 AI 前将其重写为 OpenAI 格式。</p>
+          </div>
+        </div>
+        <div class="animate-in" style="display:flex; gap:var(--space-4); padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm);">
+          <div style="width:40px; height:40px; border-radius:50%; background:var(--color-actor-2); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">2</div>
+          <div>
+            <strong style="font-family:var(--font-display);">转换收到的数据流</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">读取 OpenAI 格式的流式响应，将每个数据块转换回 QueryEngine 能理解的 Anthropic 格式。</p>
+          </div>
+        </div>
+        <div class="animate-in" style="display:flex; gap:var(--space-4); padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm);">
+          <div style="width:40px; height:40px; border-radius:50%; background:var(--color-actor-3); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">3</div>
+          <div>
+            <strong style="font-family:var(--font-display);">修复损坏的 JSON</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">当 AI 模型在词中间流式传输工具参数时，JSON 是不完整的。shim 通过尝试常见结尾直到某个能正确解析来自动补全。</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:var(--space-5); background:#1E1E2E; border-radius:var(--radius-md); margin-top:var(--space-6);">
+        <p style="font-family:var(--font-mono); font-size:var(--text-xs); color:#6C7086; margin-bottom:var(--space-3);">// src/services/api/openaiShim.ts — 简化概念</p>
+        <p style="font-family:var(--font-mono); font-size:var(--text-sm); color:#CDD6F4; margin:0; line-height:1.8;">
+          <span style="color:#CBA6F7;">你的提示词</span> <span style="color:#94E2D5;">→</span> <span style="color:#F9E2AF;">Anthropic 格式</span> <span style="color:#94E2D5;">→</span> <span style="color:#89B4FA;">openaiShim 转换</span> <span style="color:#94E2D5;">→</span> <span style="color:#A6E3A1;">OpenAI 格式</span> <span style="color:#94E2D5;">→</span> <span style="color:#F38BA8;">GPT-4o</span><br>
+          <span style="color:#F38BA8;">GPT-4o 响应</span> <span style="color:#94E2D5;">→</span> <span style="color:#A6E3A1;">OpenAI SSE 流</span> <span style="color:#94E2D5;">→</span> <span style="color:#89B4FA;">openaiShim 转换</span> <span style="color:#94E2D5;">→</span> <span style="color:#F9E2AF;">Anthropic 事件</span> <span style="color:#94E2D5;">→</span> <span style="color:#CBA6F7;">你的终端</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Screen 3: The JSON repair trick — code translation -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">聪明的 JSON 修复技巧</h2>
+      <p>
+        当 AI 模型实时响应时（叫做
+        <span class="term" data-definition="流式传输（Streaming）指 AI 在生成时逐字（逐token）发送响应，而不是等到完成后再发送。这就是为什么你在 ChatGPT 或 Claude 中看到文字逐步出现的原因。">流式传输</span>），
+        它们有时会在句子中间中断——特别是在
+        <span class="term" data-definition='JSON（JavaScript 对象表示法）是一种常见的结构化数据文本格式。它看起来像：{"name": "Alice", "age": 30}。它必须格式正确才能解析。'>JSON</span>
+        这样的结构化数据中。当 AI 正在描述一个工具调用时，这是一个真正的问题。
+      </p>
+
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">代码</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">const</span> combinations = [</span>
+<span class="code-line">  <span class="code-string">'}'</span>, <span class="code-string">'"}' </span>, <span class="code-string">']}' </span>,</span>
+<span class="code-line">  <span class="code-string">'"]}' </span>, <span class="code-string">'}}' </span>, <span class="code-string">'"}}' </span></span>
+<span class="code-line">];</span>
+<span class="code-line"><span class="code-keyword">for</span> (<span class="code-keyword">const</span> combo <span class="code-keyword">of</span> combinations) {</span>
+<span class="code-line">  <span class="code-keyword">try</span> {</span>
+<span class="code-line">    <span class="code-function">JSON.parse</span>(str + combo);</span>
+<span class="code-line">    suffixToAdd = combo;</span>
+<span class="code-line">    <span class="code-keyword">break</span>;</span>
+<span class="code-line">  } <span class="code-keyword">catch</span> {}</span>
+<span class="code-line">}</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">通俗解释</span>
+          <div class="translation-lines">
+            <p class="tl">JSON 字符串可能被截断的最常见方式的列表——只是一个右花括号，或者右引号+花括号，等等。</p>
+            <p class="tl">一个一个地尝试每个可能的结尾。</p>
+            <p class="tl">尝试用这个后缀附加到损坏的 JSON 上来解析……</p>
+            <p class="tl">如果解析成功！把这个后缀记为修复方案。</p>
+            <p class="tl">停止尝试——我们找到了正确的结尾。</p>
+            <p class="tl">如果解析失败，静默忽略错误并尝试下一个后缀。</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:var(--space-5); background:var(--color-info-light); border-radius:var(--radius-md); margin-top:var(--space-6); border-left:4px solid var(--color-info);">
+        <p style="font-weight:600; color:var(--color-info); margin-bottom:var(--space-2);">💡 这为什么对你重要</p>
+        <p style="color:var(--color-text-secondary); margin:0;">如果你在使用非 Claude 模型时看到 OpenClaude 因"JSON 解析错误"而失败，这很可能是一个流式传输问题。shim 已经尝试修复它——但存在边缘情况。了解这一点后，你可以告诉你的 AI 助手：<em>"openaiShim.ts 的 combinations 数组需要一个新的后缀来处理这种响应格式。"</em></p>
+      </div>
+    </div>
+
+    <!-- Screen 4: Streaming explained visually -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">流式传输：为什么你看到文字逐字出现</h2>
+      <p>
+        AI 不是先写完完整答案再发送。它逐个 token 发送——就像电报操作员一次一个字母地敲出消息。shim 必须拦截这个实时流，转换每个数据块，然后传递下去。
+      </p>
+
+      <div style="margin:var(--space-8) 0; padding:var(--space-6); background:var(--color-surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-md);">
+        <h3 style="font-family:var(--font-display); font-size:var(--text-lg); margin-bottom:var(--space-5); color:var(--color-text-secondary);">流式响应是如何到达的：</h3>
+        <div style="display:flex; flex-direction:column; gap:var(--space-3); font-family:var(--font-mono); font-size:var(--text-sm);">
+          <div style="display:flex; gap:var(--space-3); align-items:baseline;">
+            <span style="color:var(--color-text-muted); min-width:80px;">数据块 1:</span>
+            <span style="background:var(--color-bg-code); color:#A6E3A1; padding:2px 8px; border-radius:4px;">{ "delta": { "text": "The" } }</span>
+          </div>
+          <div style="display:flex; gap:var(--space-3); align-items:baseline;">
+            <span style="color:var(--color-text-muted); min-width:80px;">数据块 2:</span>
+            <span style="background:var(--color-bg-code); color:#A6E3A1; padding:2px 8px; border-radius:4px;">{ "delta": { "text": " answer" } }</span>
+          </div>
+          <div style="display:flex; gap:var(--space-3); align-items:baseline;">
+            <span style="color:var(--color-text-muted); min-width:80px;">数据块 3:</span>
+            <span style="background:var(--color-bg-code); color:#A6E3A1; padding:2px 8px; border-radius:4px;">{ "delta": { "text": " is..." } }</span>
+          </div>
+          <div style="display:flex; gap:var(--space-3); align-items:baseline;">
+            <span style="color:var(--color-text-muted); min-width:80px;">最终:</span>
+            <span style="background:var(--color-bg-code); color:#FAB387; padding:2px 8px; border-radius:4px;">{ "stop_reason": "end_turn" }</span>
+          </div>
+        </div>
+        <p style="margin-top:var(--space-5); font-size:var(--text-sm); color:var(--color-text-secondary);">shim 实时将每个 OpenAI 格式的数据块转换为 Anthropic 格式的事件。QueryEngine 永远不会知道它在与 Claude 以外的东西对话。</p>
+      </div>
+    </div>
+
+    <!-- Screen 5: Quiz -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">测试你的理解</h2>
+
+      <div class="quiz-container" id="quiz-module3">
+        <div class="quiz-question-block"
+             data-correct="option-b"
+             data-explanation-right="正确！shim 位于 OpenClaude 和 AI 提供商之间的边界。shim 中的 bug 意味着某些消息被错误转换——所以 AI 收到格式错误的输入并做出奇怪的响应。"
+             data-explanation-wrong="不完全对。QueryEngine 和 Terminal UI 不处理特定提供商的格式。shim 是翻译层——那里的 bug 会损坏进出 AI 的消息。">
+          <h3 class="quiz-question">OpenClaude 与 Claude 配合完美，但切换到 GPT-4o 时产生乱码工具调用。你应该首先查看哪里？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>QueryEngine——它可能以不同方式处理两个提供商</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>openaiShim.ts——它转换消息，可能为 GPT-4o 错误转换了工具调用</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>Terminal UI——渲染代码一定是特定于提供商的</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question-block"
+             data-correct="option-c"
+             data-explanation-right="没错！只要新的提供商使用 OpenAI 兼容格式，只需要配置其基础 URL 和 API 密钥。现有 shim 处理翻译——你不需要编写新的翻译代码。"
+             data-explanation-wrong="不完全对。如果新的提供商使用 OpenAI 格式（大多数都这样做），shim 已经处理了。你只需要将 OpenClaude 指向正确的基础 URL——不需要新代码。">
+          <h3 class="quiz-question">一家全新的 AI 初创公司发布了一款模型。他们的 API 与 OpenAI 兼容。你需要在 OpenClaude 中做什么来使用它？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>从零开始编写一个新的 shim 文件，如 startupShim.ts</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>修改 openaiShim.ts 以添加对新提供商的特殊处理</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>只需设置基础 URL 和 API 密钥——现有 shim 已经处理 OpenAI 兼容的提供商</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module3')" style="margin-top:var(--space-6); padding:var(--space-3) var(--space-6); background:var(--color-accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-base); font-weight:600;">检查答案</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module3')" style="margin-top:var(--space-3); margin-left:var(--space-3); padding:var(--space-3) var(--space-6); background:transparent; color:var(--color-text-secondary); border:2px solid var(--color-border); border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-base);">重试</button>
+      </div>
+    </div>
+
+  </div>
+</section>

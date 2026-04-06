@@ -1,0 +1,253 @@
+<section class="module" id="module-2" style="background: var(--color-bg-warm);">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">核心角色介绍</h1>
+      <p class="module-subtitle">每个好的系统都有几个关键角色。认识一下 OpenClaude 的主要组件——以及它们各自存在的意义。</p>
+    </header>
+
+    <!-- Screen 1: Architecture Overview -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">五个角色，一场演出</h2>
+      <p>
+        OpenClaude 不是一大块代码。它是五个独立的层，每层都有明确的工作。把它想象成电影制作：导演、剧组、演员、翻译和制片厂——每个部分做不同的事，它们之间相互传递工作。
+      </p>
+
+      <div class="arch-diagram animate-in" style="margin: var(--space-8) 0; background: var(--color-surface); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-md);">
+        <div style="display:flex; flex-direction:column; gap:var(--space-3);">
+          <div class="arch-component" data-desc="使用 React 和 Ink 构建的终端 UI。它在你的终端窗口中渲染对话，处理键盘输入，并在 AI 响应时显示流式文本——全部在你的命令行中完成。" style="padding:var(--space-4); border-radius:var(--radius-sm); border:2px solid var(--color-border); background:var(--color-accent-light); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:var(--space-3);">
+            <span style="font-size:1.5rem;">🖥️</span>
+            <div>
+              <strong style="font-family:var(--font-display);">Terminal UI</strong>
+              <span style="font-size:var(--text-sm); color:var(--color-text-secondary); margin-left:var(--space-2);">src/ink/ · 门面</span>
+            </div>
+          </div>
+          <div style="text-align:center; color:var(--color-accent); font-size:1.2rem;">↕</div>
+          <div class="arch-component" data-desc="QueryEngine 是单个对话的导演。它保存所有消息历史，调用 AI，等待工具执行，并循环直到 AI 表示完成。你输入的每个提示词都经过这里。" style="padding:var(--space-4); border-radius:var(--radius-sm); border:2px solid var(--color-border); background:var(--color-surface-warm); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:var(--space-3);">
+            <span style="font-size:1.5rem;">🧠</span>
+            <div>
+              <strong style="font-family:var(--font-display);">QueryEngine</strong>
+              <span style="font-size:var(--text-sm); color:var(--color-text-secondary); margin-left:var(--space-2);">src/QueryEngine.ts · 导演</span>
+            </div>
+          </div>
+          <div style="text-align:center; color:var(--color-accent); font-size:1.2rem;">↕</div>
+          <div class="arch-component" data-desc="Tool System 是 AI 可以调用的 30+ 种能力的集合：运行 shell 命令、读取文件、编辑文件、搜索网页、生成子代理等。AI 选择调用哪个工具，Tool System 执行它。" style="padding:var(--space-4); border-radius:var(--radius-sm); border:2px solid var(--color-border); background:var(--color-surface-warm); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:var(--space-3);">
+            <span style="font-size:1.5rem;">🔧</span>
+            <div>
+              <strong style="font-family:var(--font-display);">Tool System</strong>
+              <span style="font-size:var(--text-sm); color:var(--color-text-secondary); margin-left:var(--space-2);">src/tools/ · 双手</span>
+            </div>
+          </div>
+          <div style="text-align:center; color:var(--color-accent); font-size:1.2rem;">↕</div>
+          <div class="arch-component" data-desc="API Layer 在 OpenClaude 内部使用的格式（Anthropic 的格式）和你选择的 AI 提供商实际需要的格式之间进行转换。它是使多提供商支持成为可能的通用翻译器。" style="padding:var(--space-4); border-radius:var(--radius-sm); border:2px solid var(--color-border); background:var(--color-surface-warm); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:var(--space-3);">
+            <span style="font-size:1.5rem;">🔄</span>
+            <div>
+              <strong style="font-family:var(--font-display);">API Layer</strong>
+              <span style="font-size:var(--text-sm); color:var(--color-text-secondary); margin-left:var(--space-2);">src/services/api/ · 翻译</span>
+            </div>
+          </div>
+          <div style="text-align:center; color:var(--color-accent); font-size:1.2rem;">↕</div>
+          <div class="arch-component" data-desc="AI Providers 是真正的大脑——理解你的提示词并生成响应的大型语言模型。OpenClaude 支持 10+ 个提供商，包括 Claude、GPT-4o、DeepSeek、Gemini、Ollama 等。" style="padding:var(--space-4); border-radius:var(--radius-sm); border:2px solid var(--color-border); background:var(--color-surface-warm); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:var(--space-3);">
+            <span style="font-size:1.5rem;">🤖</span>
+            <div>
+              <strong style="font-family:var(--font-display);">AI Providers</strong>
+              <span style="font-size:var(--text-sm); color:var(--color-text-secondary); margin-left:var(--space-2);">Claude · GPT-4o · Ollama · DeepSeek… · 大脑</span>
+            </div>
+          </div>
+        </div>
+        <div class="arch-description" style="margin-top:var(--space-5); min-height:2.5em; padding:var(--space-4); background:var(--color-accent-light); border-radius:var(--radius-sm); color:var(--color-text-secondary); font-size:var(--text-sm); font-style:italic;">点击任意组件了解更多详情。</div>
+      </div>
+    </div>
+
+    <!-- Screen 2: QueryEngine deep dive -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">导演：QueryEngine</h2>
+      <p>
+        <span class="term" data-definition="QueryEngine 是 OpenClaude 中的核心类，管理单个对话会话。它保存消息历史，调用 AI，并循环执行工具直到 AI 对其答案满意。">QueryEngine</span>
+        是整个代码库中最重要的文件。它位于 <code style="font-family:var(--font-mono); background:var(--color-bg-code); color:#A6E3A1; padding:2px 6px; border-radius:4px;">src/QueryEngine.ts</code>，大小为 46 KB——它最大是有原因的。
+      </p>
+      <p>它的职责是：接收你的消息，调用 AI，检查 AI 是否想使用工具，运行工具，将结果反馈给 AI，然后重复——直到 AI 说"我说完了"。</p>
+
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">CODE</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">async</span> *<span class="code-function">submitMessage</span>(</span>
+<span class="code-line">  prompt<span class="code-operator">:</span> <span class="code-string">string</span>,</span>
+<span class="code-line">)<span class="code-operator">:</span> <span class="code-function">AsyncGenerator</span>&lt;SDKMessage&gt; {</span>
+<span class="code-line">  <span class="code-comment">// add user message to history</span></span>
+<span class="code-line">  <span class="code-keyword">this</span>.messages.<span class="code-function">push</span>(userMsg);</span>
+<span class="code-line">  <span class="code-comment">// call AI, loop until done</span></span>
+<span class="code-line">  <span class="code-keyword">while</span> (<span class="code-keyword">true</span>) {</span>
+<span class="code-line">    <span class="code-keyword">const</span> response = <span class="code-keyword">await</span> api.<span class="code-function">call</span>(messages);</span>
+<span class="code-line">    <span class="code-keyword">if</span> (response.stop_reason <span class="code-operator">===</span> <span class="code-string">'end_turn'</span>) <span class="code-keyword">break</span>;</span>
+<span class="code-line">    <span class="code-keyword">await</span> <span class="code-keyword">this</span>.<span class="code-function">executeTools</span>(response);</span>
+<span class="code-line">  }</span>
+<span class="code-line">}</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">通俗解释</span>
+          <div class="translation-lines">
+            <p class="tl">一个随时间产生消息的函数（* 表示它是一个生成器——像一个工厂，持续生产直到被叫停）。</p>
+            <p class="tl">它接收你输入的提示词作为输入。</p>
+            <p class="tl">SDKMessage 是它产生的对象类型——对话的构建块。</p>
+            <p class="tl">将你的消息添加到对话的运行历史中。</p>
+            <p class="tl">无限循环——等准备好了就退出。</p>
+            <p class="tl">将目前所有的消息发送给 AI 并等待响应。</p>
+            <p class="tl">如果 AI 说"我说完了"，退出循环。</p>
+            <p class="tl">否则，AI 想使用工具——运行那些工具然后再循环。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 3: Group Chat - Components Talking -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">对话中的对话</h2>
+      <p>
+        当你让 OpenClaude"找出这个项目中所有的 TODO 注释"时，内部组件在你看到答案之前有自己的对话。下面是它的样子：
+      </p>
+
+      <div class="chat-window animate-in" id="chat-module2" style="background:var(--color-surface); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); overflow:hidden; margin: var(--space-6) 0;">
+        <div class="chat-messages" style="padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-4);">
+
+          <div class="chat-message" data-sender="user" style="display:none; gap:var(--space-3);">
+            <div class="chat-avatar" style="background:var(--color-actor-1); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">👤</div>
+            <div class="chat-bubble" style="background:var(--color-accent-light); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); max-width:80%;">
+              <span class="chat-sender" style="color:var(--color-actor-1); font-size:var(--text-xs); font-weight:700; display:block; margin-bottom:4px;">你</span>
+              <p style="margin:0; font-size:var(--text-sm);">找出这个项目中所有的 TODO 注释。</p>
+            </div>
+          </div>
+
+          <div class="chat-message" data-sender="qe" style="display:none; gap:var(--space-3);">
+            <div class="chat-avatar" style="background:var(--color-actor-2); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">QE</div>
+            <div class="chat-bubble" style="background:var(--color-surface-warm); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); max-width:80%;">
+              <span class="chat-sender" style="color:var(--color-actor-2); font-size:var(--text-xs); font-weight:700; display:block; margin-bottom:4px;">QueryEngine</span>
+              <p style="margin:0; font-size:var(--text-sm);">好的。让我把这个提示词和对话历史及系统上下文打包，然后发送给 AI。</p>
+            </div>
+          </div>
+
+          <div class="chat-message" data-sender="ai" style="display:none; gap:var(--space-3);">
+            <div class="chat-avatar" style="background:var(--color-actor-4); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">🤖</div>
+            <div class="chat-bubble" style="background:var(--color-surface-warm); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); max-width:80%;">
+              <span class="chat-sender" style="color:var(--color-actor-4); font-size:var(--text-xs); font-weight:700; display:block; margin-bottom:4px;">AI 模型</span>
+              <p style="margin:0; font-size:var(--text-sm);">我需要搜索代码库。我将使用"TODO"模式调用 <strong>GrepTool</strong>。</p>
+            </div>
+          </div>
+
+          <div class="chat-message" data-sender="qe" style="display:none; gap:var(--space-3);">
+            <div class="chat-avatar" style="background:var(--color-actor-2); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">QE</div>
+            <div class="chat-bubble" style="background:var(--color-surface-warm); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); max-width:80%;">
+              <span class="chat-sender" style="color:var(--color-actor-2); font-size:var(--text-xs); font-weight:700; display:block; margin-bottom:4px;">QueryEngine</span>
+              <p style="margin:0; font-size:var(--text-sm);">正在询问用户……已获得授权。正在运行 GrepTool。</p>
+            </div>
+          </div>
+
+          <div class="chat-message" data-sender="tool" style="display:none; gap:var(--space-3);">
+            <div class="chat-avatar" style="background:var(--color-actor-3); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">🔧</div>
+            <div class="chat-bubble" style="background:var(--color-surface-warm); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); max-width:80%;">
+              <span class="chat-sender" style="color:var(--color-actor-3); font-size:var(--text-xs); font-weight:700; display:block; margin-bottom:4px;">GrepTool</span>
+              <p style="margin:0; font-size:var(--text-sm);">在 7 个文件中找到 14 处匹配。以下是结果……</p>
+            </div>
+          </div>
+
+          <div class="chat-message" data-sender="qe" style="display:none; gap:var(--space-3);">
+            <div class="chat-avatar" style="background:var(--color-actor-2); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">QE</div>
+            <div class="chat-bubble" style="background:var(--color-surface-warm); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); max-width:80%;">
+              <span class="chat-sender" style="color:var(--color-actor-2); font-size:var(--text-xs); font-weight:700; display:block; margin-bottom:4px;">QueryEngine</span>
+              <p style="margin:0; font-size:var(--text-sm);">将工具结果附加到对话并发送回 AI……</p>
+            </div>
+          </div>
+
+          <div class="chat-message" data-sender="ai" style="display:none; gap:var(--space-3);">
+            <div class="chat-avatar" style="background:var(--color-actor-4); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">🤖</div>
+            <div class="chat-bubble" style="background:var(--color-surface-warm); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); max-width:80%;">
+              <span class="chat-sender" style="color:var(--color-actor-4); font-size:var(--text-xs); font-weight:700; display:block; margin-bottom:4px;">AI 模型</span>
+              <p style="margin:0; font-size:var(--text-sm);">收到结果了。我说完了。以下是给你的总结……</p>
+            </div>
+          </div>
+
+          <div class="chat-message" data-sender="user" style="display:none; gap:var(--space-3);">
+            <div class="chat-avatar" style="background:var(--color-actor-1); width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">👤</div>
+            <div class="chat-bubble" style="background:var(--color-accent-light); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); max-width:80%;">
+              <span class="chat-sender" style="color:var(--color-actor-1); font-size:var(--text-xs); font-weight:700; display:block; margin-bottom:4px;">你（终端中看到）</span>
+              <p style="margin:0; font-size:var(--text-sm);">我在你的项目中找到了 7 个文件中的 14 处 TODO 注释。它们是……</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-typing" style="display:none; padding:var(--space-4) var(--space-5); gap:var(--space-3); align-items:center;">
+          <div class="chat-avatar" id="chat-module2-typing-avatar" style="width:36px; height:36px; border-radius:50%; background:var(--color-actor-2); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:var(--text-sm); flex-shrink:0;">?</div>
+          <div class="chat-typing-dots" style="display:flex; gap:4px; align-items:center;">
+            <span class="typing-dot" style="width:8px; height:8px; border-radius:50%; background:var(--color-text-muted); animation: typingBounce 1.4s infinite; display:block;"></span>
+            <span class="typing-dot" style="width:8px; height:8px; border-radius:50%; background:var(--color-text-muted); animation: typingBounce 1.4s infinite 0.2s; display:block;"></span>
+            <span class="typing-dot" style="width:8px; height:8px; border-radius:50%; background:var(--color-text-muted); animation: typingBounce 1.4s infinite 0.4s; display:block;"></span>
+          </div>
+        </div>
+
+        <div class="chat-controls" style="padding:var(--space-4) var(--space-5); border-top:1px solid var(--color-border-light); display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap;">
+          <button class="chat-next-btn btn" style="padding:var(--space-2) var(--space-4); background:var(--color-accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-sm); font-weight:600;">下一条</button>
+          <button class="chat-all-btn btn" style="padding:var(--space-2) var(--space-4); background:transparent; color:var(--color-text-secondary); border:2px solid var(--color-border); border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-sm);">全部播放</button>
+          <button class="chat-reset-btn btn" style="padding:var(--space-2) var(--space-4); background:transparent; color:var(--color-text-muted); border:2px solid var(--color-border-light); border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-sm);">重播</button>
+          <span class="chat-progress" style="font-size:var(--text-xs); color:var(--color-text-muted);"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 4: Quiz -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">应用你学到的知识</h2>
+
+      <div class="quiz-container" id="quiz-module2">
+        <div class="quiz-question-block"
+             data-correct="option-b"
+             data-explanation-right="没错。QueryEngine 是协调者——它保存对话历史，决定何时调用工具，并循环直到 AI 满意。如果它崩溃或冻结，那就是你排查的起点。"
+             data-explanation-wrong="不完全对。Terminal UI 只是渲染 QueryEngine 生成的内容。API Layer 处理网络调用，不是循环逻辑。QueryEngine 是对话生命周期所在的地方。">
+          <h3 class="quiz-question">OpenClaude 在 AI 调用工具后冻结了——就停在那里，从不显示最终答案。你应该首先检查哪个组件？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>Terminal UI——它可能卡在渲染什么东西上</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>QueryEngine——它管理将工具结果反馈给 AI 的循环</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>API Layer——它可能断开了网络连接</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question-block"
+             data-correct="option-c"
+             data-explanation-right="正确！Tool System 执行现实世界的操作。如果你想添加新能力——比如在构建成功时发送 Slack 消息——你就在那里添加一个新工具。"
+             data-explanation-wrong="QueryEngine 指导对话，不是具体能力。API Layer 翻译格式。要添加 AI 能"做"的新事情，你需要扩展 Tool System。">
+          <h3 class="quiz-question">你想教 OpenClaude 一个新技能：在构建成功时发布到 Slack。你应该扩展哪个层？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>QueryEngine——它控制对话期间发生的事情</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>API Layer——它处理所有出站通信</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>Tool System——它是 AI 可以调用的现实世界操作的集合</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module2')" style="margin-top:var(--space-6); padding:var(--space-3) var(--space-6); background:var(--color-accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-base); font-weight:600;">检查答案</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module2')" style="margin-top:var(--space-3); margin-left:var(--space-3); padding:var(--space-3) var(--space-6); background:transparent; color:var(--color-text-secondary); border:2px solid var(--color-border); border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-base);">重试</button>
+      </div>
+    </div>
+
+  </div>
+</section>

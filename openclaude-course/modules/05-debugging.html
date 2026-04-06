@@ -1,0 +1,265 @@
+<section class="module" id="module-5" style="background: var(--color-bg);">
+  <div class="module-content">
+    <header class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">当出现问题时</h1>
+      <p class="module-subtitle">每个 AI 工具最终都会出现问题。构建心智模型来跳出 bug 循环。</p>
+    </header>
+
+    <!-- Screen 1: The bug loop -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">AI bug 循环——以及如何跳出它</h2>
+      <p>
+        你可能经历过：你让 AI 修复一个 bug，它做了修改，bug 仍然存在，你再次询问，它又做了另一个修改，同样的 bug 仍然存在……这叫做
+        <span class="term" data-definition="Bug 循环是指 AI 助手以略微不同的方式不断尝试修复相同问题而没有取得真正进展的情况。发生这种情况是因为 AI 观察自身失败的能力有限，而且倾向于重试类似的方法。">bug 循环</span>。
+      </p>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:var(--space-4); margin:var(--space-8) 0;">
+        <div style="padding:var(--space-5); background:var(--color-error-light); border-radius:var(--radius-md); border-top:3px solid var(--color-error);">
+          <div style="font-size:1.5rem; margin-bottom:var(--space-3);">🔴</div>
+          <h3 style="font-family:var(--font-display); font-size:var(--text-base); font-weight:700; margin-bottom:var(--space-2);">Bug 循环的迹象</h3>
+          <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0;">AI 以微小变化尝试相同方法 2-3 次。它已经没有想法但不会说出来。</p>
+        </div>
+        <div style="padding:var(--space-5); background:var(--color-success-light); border-radius:var(--radius-md); border-top:3px solid var(--color-success);">
+          <div style="font-size:1.5rem; margin-bottom:var(--space-3);">✅</div>
+          <h3 style="font-family:var(--font-display); font-size:var(--text-base); font-weight:700; margin-bottom:var(--space-2);">如何跳出</h3>
+          <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0;">停下来给 AI 新信息。自己阅读错误信息。粘贴确切错误。转向："不要修复它——解释<em>为什么</em>会发生这种情况。"</p>
+        </div>
+      </div>
+
+      <div style="padding:var(--space-5); background:var(--color-info-light); border-left:4px solid var(--color-info); border-radius:var(--radius-md);">
+        <p style="font-weight:600; color:var(--color-info); margin-bottom:var(--space-2);">💡 关键洞察</p>
+        <p style="color:var(--color-text-secondary); margin:0;">OpenClaude（以及一般的 AI 工具）只能对上下文窗口中的内容进行推理。如果真正的问题不在对话中，AI 实际上看不到它。<em>你</em>必须把缺失的信息带进来。</p>
+      </div>
+    </div>
+
+    <!-- Screen 2: Common failure modes by layer -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">按层诊断：首先检查哪里</h2>
+      <p>
+        有了本课程的建筑理解，你可以将任何问题缩小到特定层。以下是诊断图：
+      </p>
+
+      <div class="stagger-children" style="display:flex; flex-direction:column; gap:var(--space-3); margin:var(--space-8) 0;">
+        <div class="animate-in" style="padding:var(--space-4); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-left:4px solid var(--color-actor-1);">
+          <div style="display:flex; gap:var(--space-3); align-items:baseline;">
+            <strong style="font-family:var(--font-display); min-width:150px; color:var(--color-actor-1);">完全没有响应</strong>
+            <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">→ 检查 API 层：基础 URL 错误、API 密钥缺失或网络问题</span>
+          </div>
+        </div>
+        <div class="animate-in" style="padding:var(--space-4); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-left:4px solid var(--color-actor-2);">
+          <div style="display:flex; gap:var(--space-3); align-items:baseline; flex-wrap:wrap;">
+            <strong style="font-family:var(--font-display); min-width:150px; color:var(--color-actor-2);">工具调用乱码</strong>
+            <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">→ 检查 openaiShim.ts：提供商可能有 shim 未处理的格式怪癖</span>
+          </div>
+        </div>
+        <div class="animate-in" style="padding:var(--space-4); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-left:4px solid var(--color-actor-3);">
+          <div style="display:flex; gap:var(--space-3); align-items:baseline; flex-wrap:wrap;">
+            <strong style="font-family:var(--font-display); min-width:150px; color:var(--color-actor-3);">任务中途冻结</strong>
+            <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">→ 检查 QueryEngine：工具执行循环可能正在等待你错过的权限提示</span>
+          </div>
+        </div>
+        <div class="animate-in" style="padding:var(--space-4); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-left:4px solid var(--color-actor-4);">
+          <div style="display:flex; gap:var(--space-3); align-items:baseline; flex-wrap:wrap;">
+            <strong style="font-family:var(--font-display); min-width:150px; color:var(--color-actor-4);">工具运行但失败</strong>
+            <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">→ 检查工具系统：工具可能缺乏权限（文件系统、网络等）或输入格式错误</span>
+          </div>
+        </div>
+        <div class="animate-in" style="padding:var(--space-4); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); border-left:4px solid var(--color-actor-5);">
+          <div style="display:flex; gap:var(--space-3); align-items:baseline; flex-wrap:wrap;">
+            <strong style="font-family:var(--font-display); min-width:150px; color:var(--color-actor-5);">输出格式错误</strong>
+            <span style="font-size:var(--text-sm); color:var(--color-text-secondary);">→ 模型本身可能是问题所在：尝试使用不同的提供商或更强的模型使用相同提示词</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 3: Provider switching as debugging -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">切换提供商：独特的调试工具</h2>
+      <p>
+        大多数 AI 工具将你锁定在一个模型上。OpenClaude 不是。这不仅仅是一个功能——它是一种<strong>诊断能力</strong>。
+      </p>
+
+      <div style="margin:var(--space-8) 0;">
+        <div style="display:flex; gap:var(--space-4); align-items:center; padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); margin-bottom:var(--space-4);">
+          <div style="font-size:1.5rem; flex-shrink:0;">🔍</div>
+          <div>
+            <strong style="font-family:var(--font-display);">隔离模型 bug 和工具 bug</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">如果相同提示词在 Claude 上有效但在 GPT-4o 上失败，bug 在 shim 或 GPT-4o 的行为中——不在你的提示词中。如果两者都失败，问题在其他地方。</p>
+          </div>
+        </div>
+        <div style="display:flex; gap:var(--space-4); align-items:center; padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); margin-bottom:var(--space-4);">
+          <div style="font-size:1.5rem; flex-shrink:0;">💰</div>
+          <div>
+            <strong style="font-family:var(--font-display);">低成本复现，用最佳模型修复</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">使用廉价快速的模型（DeepSeek、Groq）来复现和迭代调试。只有当你有明确的修复方案要验证时，才切换到 Claude Opus。</p>
+          </div>
+        </div>
+        <div style="display:flex; gap:var(--space-4); align-items:center; padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm);">
+          <div style="font-size:1.5rem; flex-shrink:0;">🏠</div>
+          <div>
+            <strong style="font-family:var(--font-display);">API 宕机时切换离线</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">如果 Anthropic 或 OpenAI 出现宕机，立即切换到 Ollama。你的工作流程不会中断。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 4: Code translation — retry logic -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">OpenClaude 如何处理不稳定的 AI 响应</h2>
+      <p>
+        调用 AI API 时，
+        <span class="term" data-definition="速率限制（Rate limiting）是指 API 提供商因为你在一短时间内发送了太多请求而暂时阻止你的请求。大多数 AI API 都有每分钟可以发送的 token 数量或请求数量限制。">速率限制</span>
+        和临时网络故障很常见。OpenClaude 有一个专门的文件来处理这些情况：<code style="font-family:var(--font-mono); background:var(--color-bg-code); color:#A6E3A1; padding:2px 6px; border-radius:4px;">src/services/api/withRetry.ts</code>。
+      </p>
+
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">代码</span>
+          <pre><code>
+<span class="code-line"><span class="code-keyword">async function</span> <span class="code-function">withRetry</span>(fn, opts) {</span>
+<span class="code-line">  <span class="code-keyword">let</span> attempt = <span class="code-number">0</span>;</span>
+<span class="code-line">  <span class="code-keyword">while</span> (attempt &lt; opts.maxRetries) {</span>
+<span class="code-line">    <span class="code-keyword">try</span> {</span>
+<span class="code-line">      <span class="code-keyword">return await</span> <span class="code-function">fn</span>();</span>
+<span class="code-line">    } <span class="code-keyword">catch</span> (err) {</span>
+<span class="code-line">      <span class="code-keyword">if</span> (<span class="code-function">isRateLimit</span>(err)) {</span>
+<span class="code-line">        <span class="code-keyword">await</span> <span class="code-function">sleep</span>(backoff(attempt));</span>
+<span class="code-line">      } <span class="code-keyword">else</span> <span class="code-keyword">throw</span> err;</span>
+<span class="code-line">    }</span>
+<span class="code-line">    attempt++;</span>
+<span class="code-line">  }</span>
+<span class="code-line">}</span>
+          </code></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">通俗解释</span>
+          <div class="translation-lines">
+            <p class="tl">一个可以自动重试任何操作的包装函数。</p>
+            <p class="tl">将计数器从零开始。</p>
+            <p class="tl">持续尝试直到达到最大重试次数。</p>
+            <p class="tl">尝试运行该操作。</p>
+            <p class="tl">如果成功了，立即返回结果——不需要更多重试。</p>
+            <p class="tl">如果失败了，检查它是什么类型的错误。</p>
+            <p class="tl">如果是速率限制错误，在重试前等待（每次等待时间更长——指数退避）。</p>
+            <p class="tl">对于任何其他错误，放弃并重新抛出它——重试不会有用。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 5: Final Quiz -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">最终挑战：调试一个真实场景</h2>
+
+      <div class="quiz-container" id="quiz-module5">
+        <div class="quiz-question-block"
+             data-correct="option-b"
+             data-explanation-right="正确！症状是提供商特定的，这意味着 shim（openaiShim.ts）为这个特定的提供商转换内容时出了问题。QueryEngine 和工具系统对所有提供商都是一样的。"
+             data-explanation-wrong="QueryEngine 处理对话流程，但不进行提供商之间的格式转换。如果只在 Mistral 上出问题，转换层（openaiShim.ts）是最大的嫌疑对象。">
+          <h3 class="quiz-question">文件编辑在 Claude 和 GPT-4o 上运行完美。在 Mistral 上静默失败——工具运行了但没有任何变化。最可能的 bug 在哪里？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>QueryEngine——它在工具执行循环中对 Mistral 区别对待</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>openaiShim.ts——Mistral 的工具结果格式可能没有被正确转换</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>FileEditTool——它一定有 Mistral 特定的代码路径坏了</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question-block"
+             data-correct="option-a"
+             data-explanation-right="完全正确。权限提示出现在终端中，需要按键才能继续。如果你在无头环境（CI、脚本）中运行，这些提示永远不会得到响应，工具会永远挂起等待。"
+             data-explanation-wrong="不太对。网络超时会显示错误消息。JSON 问题会产生乱码输出。症状——永远挂起没有错误——指向未响应的权限提示。">
+          <h3 class="quiz-question">你在 CI 管道中运行 OpenClaude 来自动修复 linting 错误。它无限期挂起，没有输出也没有错误。最可能的原因是什么？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>权限系统正在等待人工批准工具使用——但在 CI 中没有人操作键盘</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>API 速率限制被触发，重试循环等待时间过长</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>shim 无法解析流式 JSON 响应</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-question-block"
+             data-correct="option-c"
+             data-explanation-right="完全正确！上下文窗口是 AI 的工作内存。当代码库太大而无法容纳时，重要的代码会被挤出去。使用子代理（AgentTool）可以让你保持主上下文干净，同时给每个代理代码库的专注切片。"
+             data-explanation-wrong="切换提供商对上下文窗口限制没有帮助——每个提供商都有这些限制。增加最大 token 有一点帮助但不能解决大代码库问题。子代理是架构层面的解决方案。">
+          <h3 class="quiz-question">OpenClaude 在大型代码库上产生越来越混乱的答案——引用不存在的函数，混淆文件名。你会使用哪个 OpenClaude 特性来解决这个问题？</h3>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="option-a" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>切换到有更大模型的大型 AI 提供商</span>
+            </button>
+            <button class="quiz-option" data-value="option-b" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>增加配置中的最大 token 设置</span>
+            </button>
+            <button class="quiz-option" data-value="option-c" onclick="selectOption(this)">
+              <div class="quiz-option-radio"></div>
+              <span>使用 AgentTool 生成子代理——每个专注于代码库的特定部分——这样就不会有单个上下文过载</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-module5')" style="margin-top:var(--space-6); padding:var(--space-3) var(--space-6); background:var(--color-accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-base); font-weight:600;">检查答案</button>
+        <button class="quiz-reset-btn" onclick="resetQuiz('quiz-module5')" style="margin-top:var(--space-3); margin-left:var(--space-3); padding:var(--space-3) var(--space-6); background:transparent; color:var(--color-text-secondary); border:2px solid var(--color-border); border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-body); font-size:var(--text-base);">再试一次</button>
+      </div>
+    </div>
+
+    <!-- Screen 6: Conclusion -->
+    <div class="screen animate-in">
+      <h2 class="screen-heading">你现在知道 OpenClaude 是如何工作的了</h2>
+      <p>你已经学会了大多数使用这个工具的人从未有过的思维模型。以下是你可以用它来做的事情：</p>
+
+      <div class="stagger-children" style="display:flex; flex-direction:column; gap:var(--space-4); margin:var(--space-8) 0;">
+        <div class="animate-in" style="display:flex; gap:var(--space-4); padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm);">
+          <span style="font-size:1.5rem; flex-shrink:0;">🎯</span>
+          <div>
+            <strong style="font-family:var(--font-display);">给出更好的指令</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">不要说"修复这个"，你可以说"使用子代理来研究问题，然后使用 QueryEngine 上下文来实现修复"。</p>
+          </div>
+        </div>
+        <div class="animate-in" style="display:flex; gap:var(--space-4); padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm);">
+          <span style="font-size:1.5rem; flex-shrink:0;">🔍</span>
+          <div>
+            <strong style="font-family:var(--font-display);">更快地诊断问题</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">提供商特定的 bug？检查 shim。任务中途冻结？检查权限循环。输出错误？尝试另一个提供商来将模型与基础设施隔离。</p>
+          </div>
+        </div>
+        <div class="animate-in" style="display:flex; gap:var(--space-4); padding:var(--space-5); background:var(--color-surface); border-radius:var(--radius-md); box-shadow:var(--shadow-sm);">
+          <span style="font-size:1.5rem; flex-shrink:0;">💬</span>
+          <div>
+            <strong style="font-family:var(--font-display);">与工程师精确交流</strong>
+            <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:var(--space-1) 0 0 0;">你现在知道了适配器模式、流式传输、上下文窗口、权限系统和 shim 等术语。在提交 issue、解释问题或请求功能时使用它们。</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center; padding:var(--space-10) 0 var(--space-6);">
+        <div style="font-family:var(--font-display); font-size:var(--text-3xl); font-weight:800; color:var(--color-accent); margin-bottom:var(--space-4);">你可以的。</div>
+        <p style="color:var(--color-text-secondary); max-width:500px; margin:0 auto;">每个专家都曾经是一个不断问"但<em>为什么</em>它会那样工作？"的初学者。现在你知道为什么了。</p>
+      </div>
+    </div>
+
+  </div>
+</section>
