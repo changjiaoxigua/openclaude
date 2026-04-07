@@ -248,6 +248,7 @@ function convertMessages(
       // Check for tool_use blocks
       if (Array.isArray(content)) {
         const toolUses = content.filter((b: { type?: string }) => b.type === 'tool_use')
+        const thinkingBlocks = content.filter((b: { type?: string }) => b.type === 'thinking')
         const textContent = content.filter(
           (b: { type?: string }) => b.type !== 'tool_use' && b.type !== 'thinking',
         )
@@ -258,6 +259,17 @@ function convertMessages(
             const c = convertContentBlocks(textContent)
             return typeof c === 'string' ? c : Array.isArray(c) ? c.map((p: { text?: string }) => p.text ?? '').join('') : ''
           })(),
+        }
+
+        // Preserve reasoning_content for providers that require it (Kimi, DeepSeek R1, etc.)
+        if (thinkingBlocks.length > 0) {
+          const reasoning = thinkingBlocks
+            .map((b: { thinking?: string }) => b.thinking ?? '')
+            .filter(Boolean)
+            .join('\n')
+          if (reasoning) {
+            ;(assistantMsg as Record<string, unknown>).reasoning_content = reasoning
+          }
         }
 
         if (toolUses.length > 0) {
@@ -439,6 +451,7 @@ interface OpenAIStreamChunk {
     delta: {
       role?: string
       content?: string | null
+      reasoning_content?: string | null
       tool_calls?: Array<{
         index: number
         id?: string
@@ -488,6 +501,7 @@ async function* openaiStreamToAnthropic(
   let contentBlockIndex = 0
   const activeToolCalls = new Map<number, { id: string; name: string; index: number; jsonBuffer: string }>()
   let hasEmittedContentStart = false
+  let hasEmittedThinkingStart = false
   let lastStopReason: 'tool_use' | 'max_tokens' | 'end_turn' | null = null
   let hasEmittedFinalUsage = false
   let hasProcessedFinishReason = false
@@ -544,9 +558,35 @@ async function* openaiStreamToAnthropic(
       for (const choice of chunk.choices ?? []) {
         const delta = choice.delta
 
+        // Reasoning content (Kimi, DeepSeek R1, etc.) → Anthropic thinking block
+        if (delta.reasoning_content != null) {
+          if (!hasEmittedThinkingStart) {
+            yield {
+              type: 'content_block_start',
+              index: contentBlockIndex,
+              content_block: { type: 'thinking', thinking: '' },
+            }
+            hasEmittedThinkingStart = true
+          }
+          yield {
+            type: 'content_block_delta',
+            index: contentBlockIndex,
+            delta: { type: 'thinking_delta', thinking: delta.reasoning_content },
+          }
+        }
+
         // Text content — use != null to distinguish absent field from empty string,
         // some providers send "" as first delta to signal streaming start
         if (delta.content != null) {
+          // Close thinking block before starting text block
+          if (hasEmittedThinkingStart) {
+            yield {
+              type: 'content_block_stop',
+              index: contentBlockIndex,
+            }
+            contentBlockIndex++
+            hasEmittedThinkingStart = false
+          }
           if (!hasEmittedContentStart) {
             yield {
               type: 'content_block_start',
@@ -633,6 +673,15 @@ async function* openaiStreamToAnthropic(
         if (choice.finish_reason && !hasProcessedFinishReason) {
           hasProcessedFinishReason = true
 
+          // Close any open thinking block
+          if (hasEmittedThinkingStart) {
+            yield {
+              type: 'content_block_stop',
+              index: contentBlockIndex,
+            }
+            contentBlockIndex++
+            hasEmittedThinkingStart = false
+          }
           // Close any open content blocks
           if (hasEmittedContentStart) {
             yield {
