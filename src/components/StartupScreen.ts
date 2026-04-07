@@ -41,11 +41,13 @@ const V  = '\u2502' // │
 // Only foreground color is set — no background — so no color bleed.
 
 const LOGO_LINES = [
-  ' ##   ##  ##       ##',
-  '  ## ##   ##       ##',
-  '   ###    ## ## ## ##',
-  '   ##      ###  ###  ',
-  '   ##      ###  ###  ',
+  ' #     # #     #  #####  ####### ######  ####### ###### ',
+  '  #   #  #  #  # #     # #     # #     # #       #     # ',
+  '   # #   #  #  # #       #     # #     # #       #     # ',
+  '    #    #  #  # #       #     # #     # #####   ######   ',
+  '    #    #  #  # #       #     # #     # #       #   #  ',
+  '    #    #  #  # #     # #     # #     # #       #    #  ', 
+  '    #     ## ##   #####  ####### ######  ####### #     # ', 
 ].map(line => line.replace(/#/g, '\u2588'))
 
 // ─── Provider detection ───────────────────────────────────────────────────────
@@ -150,10 +152,9 @@ export function printStartupScreen(): void {
 
   // Tagline
   out.push(
-    `  ${COL_ACCENT}\u2726${RESET} ${COL_VALUE}数据中心·运维支持部出品 ｜ 智能编码，无限可能${RESET} ${COL_ACCENT}\u2726${RESET}`
+    `  ${COL_ACCENT}\u2726${RESET} ${COL_VALUE}${COL_ACCENT}\u2726${RESET} ${COL_VALUE}${COL_ACCENT}\u2726${RESET} ${COL_VALUE}数据中心·运维支持部出品 ${COL_ACCENT}\u2726${RESET} ${COL_VALUE}${COL_ACCENT}\u2726${RESET} ${COL_VALUE}${COL_ACCENT}\u2726${RESET} ${COL_VALUE}`
   )
   out.push('')
-
   // ┌── info box ──┐
   out.push(`  ${COL_BORDER}${TL}${H.repeat(W - 2)}${TR}${RESET}`)
 
@@ -186,7 +187,7 @@ export function printStartupScreen(): void {
 
   // version footer
   const ver = MACRO.DISPLAY_VERSION ?? MACRO.VERSION
-  out.push(`  ${DIM}${COL_DIM}ywcoder${RESET} ${COL_ACCENT}v${ver}${RESET}`)
+  out.push(`  ${DIM}${COL_DIM}YwCoder${RESET} ${COL_ACCENT}v${ver}${RESET}`)
   out.push('')
 
   process.stdout.write(out.join('\n') + '\n')
