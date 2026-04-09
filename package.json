@@ -8,7 +8,6 @@
   },
   "files": [
     "bin/ywcoder",
-    "bin/openclaude",
     "dist/cli.mjs",
     "README.md"
   ],
