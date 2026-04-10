@@ -33,6 +33,62 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Download ripgrep for vendor directory
+        run: |
+          # Create vendor/ripgrep directory structure
+          New-Item -ItemType Directory -Force -Path "vendor/ripgrep/x64-win32"
+          New-Item -ItemType Directory -Force -Path "vendor/ripgrep/x64-linux"
+          New-Item -ItemType Directory -Force -Path "vendor/ripgrep/x64-darwin"
+          New-Item -ItemType Directory -Force -Path "vendor/ripgrep/arm64-darwin"
+
+          # Download Windows x64 ripgrep
+          $rgVersion = "14.1.0"
+          $rgUrl = "https://github.com/BurntSushi/ripgrep/releases/download/$rgVersion/ripgrep-$rgVersion-x86_64-pc-windows-msvc.zip"
+          Invoke-WebRequest -Uri $rgUrl -OutFile "rg-windows.zip"
+          Expand-Archive -Path "rg-windows.zip" -DestinationPath "rg-temp"
+          Copy-Item -Path "rg-temp/rg.exe" -Destination "vendor/ripgrep/x64-win32/rg.exe"
+          Remove-Item -Path "rg-windows.zip" -Force
+          Remove-Item -Path "rg-temp" -Recurse -Force
+
+          Write-Host "Downloaded ripgrep for Windows x64"
+
+          # Download Linux x64 ripgrep
+          $rgLinuxUrl = "https://github.com/BurntSushi/ripgrep/releases/download/$rgVersion/ripgrep-$rgVersion-x86_64-unknown-linux-musl.tar.gz"
+          Invoke-WebRequest -Uri $rgLinuxUrl -OutFile "rg-linux.tar.gz"
+          New-Item -ItemType Directory -Force -Path "rg-linux-temp"
+          tar -xzf "rg-linux.tar.gz" -C "rg-linux-temp" --strip-components=1
+          Copy-Item -Path "rg-linux-temp/rg" -Destination "vendor/ripgrep/x64-linux/rg"
+          Remove-Item -Path "rg-linux.tar.gz" -Force
+          Remove-Item -Path "rg-linux-temp" -Recurse -Force
+
+          Write-Host "Downloaded ripgrep for Linux x64"
+
+          # Download macOS x64 ripgrep
+          $rgMacUrl = "https://github.com/BurntSushi/ripgrep/releases/download/$rgVersion/ripgrep-$rgVersion-x86_64-apple-darwin.tar.gz"
+          Invoke-WebRequest -Uri $rgMacUrl -OutFile "rg-mac.tar.gz"
+          New-Item -ItemType Directory -Force -Path "rg-mac-temp"
+          tar -xzf "rg-mac.tar.gz" -C "rg-mac-temp" --strip-components=1
+          Copy-Item -Path "rg-mac-temp/rg" -Destination "vendor/ripgrep/x64-darwin/rg"
+          Remove-Item -Path "rg-mac.tar.gz" -Force
+          Remove-Item -Path "rg-mac-temp" -Recurse -Force
+
+          Write-Host "Downloaded ripgrep for macOS x64"
+
+          # Download macOS arm64 ripgrep
+          $rgMacArmUrl = "https://github.com/BurntSushi/ripgrep/releases/download/$rgVersion/ripgrep-$rgVersion-aarch64-apple-darwin.tar.gz"
+          Invoke-WebRequest -Uri $rgMacArmUrl -OutFile "rg-mac-arm.tar.gz"
+          New-Item -ItemType Directory -Force -Path "rg-mac-arm-temp"
+          tar -xzf "rg-mac-arm.tar.gz" -C "rg-mac-arm-temp" --strip-components=1
+          Copy-Item -Path "rg-mac-arm-temp/rg" -Destination "vendor/ripgrep/arm64-darwin/rg"
+          Remove-Item -Path "rg-mac-arm.tar.gz" -Force
+          Remove-Item -Path "rg-mac-arm-temp" -Recurse -Force
+
+          Write-Host "Downloaded ripgrep for macOS arm64"
+
+          # Show vendor directory structure
+          Write-Host "Vendor directory structure:"
+          Get-ChildItem -Recurse vendor/
+
       - name: Create offline package with node_modules
         run: |
           # Add bundledDependencies to package.json
