@@ -70,8 +70,11 @@ jobs:
           Write-Host "Copied vendor to dist/ directory"
           Get-ChildItem -Recurse dist/vendor/
 
+      - name: Prepare minimal node_modules for offline packing
+        run: node scripts/prepare-offline-pack.mjs
+
       - name: Pack npm package
-        run: npm pack
+        run: npm pack --ignore-scripts
 
       - name: Show package info
         run: |

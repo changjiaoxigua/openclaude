@@ -10,6 +10,7 @@
     "bin/ywcoder",
     "dist/cli.mjs",
     "dist/vendor/",
+    "node_modules/",
     "README.md"
   ],
   "scripts": {
