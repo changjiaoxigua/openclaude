@@ -9,7 +9,7 @@
   "files": [
     "bin/ywcoder",
     "dist/cli.mjs",
-    "vendor/",
+    "dist/vendor/",
     "README.md"
   ],
   "scripts": {
