@@ -151,6 +151,110 @@ export async function handleBgFlag() { throw new Error("Background sessions are 
 
         // NOTE: @opentelemetry/* kept as external deps (too many named exports to stub)
 
+        // ─── Cloud provider SDK stubs ──────────────────────────────────────────
+        //
+        // 2025-04-11: Stubbed for intranet/offline deployments.
+        //
+        // Background: these SDKs are used to call Claude via AWS Bedrock,
+        // Google Vertex AI, or Azure. In our intranet environment all requests
+        // go through a self-hosted LLM gateway, so these code paths are never
+        // executed. Stubbing them removes ~35 MB from node_modules and keeps
+        // the offline tgz compact.
+        //
+        // All imports below are *dynamic* (`await import(...)`) so the stub is
+        // only reached if a user explicitly configures one of these providers.
+        // If that happens they will get a clear "provider not supported" error
+        // rather than a cryptic module-not-found crash.
+        //
+        // HOW TO RESTORE:
+        //   1. Delete the four onResolve/onLoad blocks below.
+        //   2. Keep the packages in the `external` array at the bottom of this
+        //      file (they are still listed there — just no longer stub-loaded).
+        //   3. Re-run CI — the full SDK will be bundled from node_modules.
+        //
+        // Files affected:
+        //   src/utils/model/bedrock.ts      — AWS Bedrock client
+        //   src/utils/aws.ts                — STS identity + credential cache
+        //   src/utils/proxy.ts              — AWS credential-provider-node
+        //   src/utils/geminiAuth.ts         — Google Vertex AI auth
+        //   src/utils/auth.ts               — Google auth fallback
+
+        // @aws-sdk/client-bedrock
+        build.onResolve({ filter: /^@aws-sdk\/client-bedrock$/ }, args => ({
+          path: args.path, namespace: 'cloud-sdk-stub',
+        }))
+        // @aws-sdk/client-bedrock-runtime
+        build.onResolve({ filter: /^@aws-sdk\/client-bedrock-runtime$/ }, args => ({
+          path: args.path, namespace: 'cloud-sdk-stub',
+        }))
+        // @aws-sdk/client-sts
+        build.onResolve({ filter: /^@aws-sdk\/client-sts$/ }, args => ({
+          path: args.path, namespace: 'cloud-sdk-stub',
+        }))
+        // @aws-sdk/credential-providers
+        build.onResolve({ filter: /^@aws-sdk\/credential-providers$/ }, args => ({
+          path: args.path, namespace: 'cloud-sdk-stub',
+        }))
+        // @aws-sdk/credential-provider-node
+        build.onResolve({ filter: /^@aws-sdk\/credential-provider-node$/ }, args => ({
+          path: args.path, namespace: 'cloud-sdk-stub',
+        }))
+        // google-auth-library
+        build.onResolve({ filter: /^google-auth-library$/ }, args => ({
+          path: args.path, namespace: 'cloud-sdk-stub',
+        }))
+
+        build.onLoad({ filter: /.*/, namespace: 'cloud-sdk-stub' }, (args) => {
+          const stubs: Record<string, string> = {
+            '@aws-sdk/client-bedrock': `
+const err = () => { throw new Error('[YwCoder] AWS Bedrock provider is not supported in this intranet build. To enable it, remove the cloud-sdk stubs from scripts/build.ts and rebuild.'); };
+export class BedrockClient { constructor() { err(); } send() { err(); } }
+export class ListInferenceProfilesCommand { constructor() { err(); } }
+export class GetInferenceProfileCommand { constructor() { err(); } }
+`,
+            '@aws-sdk/client-bedrock-runtime': `
+const err = () => { throw new Error('[YwCoder] AWS Bedrock provider is not supported in this intranet build. To enable it, remove the cloud-sdk stubs from scripts/build.ts and rebuild.'); };
+export class BedrockRuntimeClient { constructor() { err(); } send() { err(); } }
+export class CountTokensCommand { constructor() { err(); } }
+export class InvokeModelCommand { constructor() { err(); } }
+export class InvokeModelWithResponseStreamCommand { constructor() { err(); } }
+export const ResponseStream = {};
+// Exception classes used by @anthropic-ai/bedrock-sdk/AWS_restJson1.mjs
+export class InternalServerException extends Error { constructor(opts) { super(opts?.message); this.name = 'InternalServerException'; } }
+export class ModelStreamErrorException extends Error { constructor(opts) { super(opts?.message); this.name = 'ModelStreamErrorException'; } }
+export class ThrottlingException extends Error { constructor(opts) { super(opts?.message); this.name = 'ThrottlingException'; } }
+export class ValidationException extends Error { constructor(opts) { super(opts?.message); this.name = 'ValidationException'; } }
+`,
+            '@aws-sdk/client-sts': `
+const err = () => { throw new Error('[YwCoder] AWS STS is not supported in this intranet build. To enable it, remove the cloud-sdk stubs from scripts/build.ts and rebuild.'); };
+export class STSClient { constructor() { err(); } send() { err(); } }
+export class GetCallerIdentityCommand { constructor() { err(); } }
+`,
+            '@aws-sdk/credential-providers': `
+const err = () => { throw new Error('[YwCoder] AWS credential providers are not supported in this intranet build. To enable them, remove the cloud-sdk stubs from scripts/build.ts and rebuild.'); };
+export const fromIni = () => err;
+export const fromEnv = () => err;
+export const fromProcess = () => err;
+`,
+            '@aws-sdk/credential-provider-node': `
+const err = () => { throw new Error('[YwCoder] AWS credential-provider-node is not supported in this intranet build. To enable it, remove the cloud-sdk stubs from scripts/build.ts and rebuild.'); };
+export const defaultProvider = () => err;
+`,
+            'google-auth-library': `
+const err = () => { throw new Error('[YwCoder] Google Vertex AI auth is not supported in this intranet build. To enable it, remove the cloud-sdk stubs from scripts/build.ts and rebuild.'); };
+export class GoogleAuth { constructor() { err(); } getClient() { err(); } }
+export class JWT { constructor() { err(); } }
+export class OAuth2Client { constructor() { err(); } }
+`,
+          }
+          return {
+            contents: stubs[args.path] ?? `export default {}`,
+            loader: 'js',
+          }
+        })
+
+        // ─── End cloud provider SDK stubs ─────────────────────────────────────
+
         // Resolve native addon and missing snapshot imports to stubs
         for (const mod of [
           'audio-capture-napi',
@@ -374,13 +478,14 @@ ${exports}
     '@opentelemetry/semantic-conventions',
     // Native image processing
     'sharp',
-    // Cloud provider SDKs
-    '@aws-sdk/client-bedrock',
-    '@aws-sdk/client-bedrock-runtime',
-    '@aws-sdk/client-sts',
-    '@aws-sdk/credential-providers',
-    '@azure/identity',
-    'google-auth-library',
+    // Cloud provider SDKs — stubbed for intranet builds (see build.ts cloud-sdk-stub section)
+    // To restore: remove the stub blocks above and uncomment these lines, then rebuild.
+    // '@aws-sdk/client-bedrock',
+    // '@aws-sdk/client-bedrock-runtime',
+    // '@aws-sdk/client-sts',
+    // '@aws-sdk/credential-providers',
+    // '@azure/identity',        // not used in src/ — safe to leave commented out
+    // 'google-auth-library',
   ],
 })
 

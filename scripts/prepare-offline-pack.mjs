@@ -28,16 +28,24 @@ import {
 } from 'node:fs'
 import { join } from 'node:path'
 
-// Runtime externals that cli.mjs actually imports.
-// Derived by grepping `from "<pkg>"` in dist/cli.mjs:
-//   - sharp is loaded via `await import("sharp")` (dynamic)
-//   - @aws-sdk/client-bedrock-runtime is a static import
-//   - 7 @opentelemetry packages are static imports
-// Every other "external" listed in scripts/build.ts is unreferenced at
-// runtime (the no-telemetry-plugin stubs them out in src/).
+// Runtime externals that cli.mjs actually imports at runtime.
+//
+// After PR-4 (2025-04-11) the cloud provider SDKs (@aws-sdk/*, google-auth-library)
+// are stubbed at build time in scripts/build.ts, so they are no longer needed
+// here. Only the following packages must ship in node_modules:
+//
+//   - sharp: native image-processing lib — JS part is bundled, but the
+//     platform-specific .node binary (@img/sharp-<platform>) cannot be bundled
+//     and must be installed via npm so Node can dlopen() it at runtime.
+//   - @opentelemetry/*: 7 packages with static `import` in src/; kept external
+//     because they have too many named exports to stub reliably.
+//
+// TO RESTORE cloud SDK support:
+//   1. Remove the cloud-sdk-stub blocks from scripts/build.ts.
+//   2. Add the packages back to RUNTIME_DEPENDENCIES below.
+//   3. Re-run CI.
 const RUNTIME_DEPENDENCIES = {
   sharp: '^0.34.5',
-  '@aws-sdk/client-bedrock-runtime': '*',
   '@opentelemetry/api': '1.9.1',
   '@opentelemetry/api-logs': '0.214.0',
   '@opentelemetry/resources': '2.6.1',
